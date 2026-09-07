@@ -1,0 +1,18 @@
+# Node dependencies
+node_modules/
+
+# macOS
+.DS_Store
+
+# Xcode local/build files
+DerivedData/
+**/xcuserdata/
+*.xcuserstate
+
+# Capacitor generated web copy
+ios/App/App/public/
+
+# Capacitor / Cordova generated files
+ios/App/capacitor-cordova-ios-plugins/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
