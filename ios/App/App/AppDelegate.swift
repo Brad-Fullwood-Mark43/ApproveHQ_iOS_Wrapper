@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 import Security
+import LocalAuthentication
 
 @objc(SecureSessionPlugin)
 public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -10,6 +11,7 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "get", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "set", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "remove", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "openURL", returnType: CAPPluginReturnPromise)
     ]
 
@@ -82,6 +84,39 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         } else {
             call.reject("Could not remove secure session.")
+        }
+    }
+
+    @objc func authenticate(_ call: CAPPluginCall) {
+        let context = LAContext()
+        context.localizedCancelTitle = "Use passphrase"
+        var error: NSError?
+
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            call.resolve([
+                "available": false,
+                "authenticated": false
+            ])
+            return
+        }
+
+        let reason = call.getString("reason") ?? "Unlock ApproveHQ"
+        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, authError in
+            DispatchQueue.main.async {
+                if success {
+                    call.resolve([
+                        "available": true,
+                        "authenticated": true
+                    ])
+                } else {
+                    let nsError = authError as NSError?
+                    call.resolve([
+                        "available": true,
+                        "authenticated": false,
+                        "errorCode": nsError?.code ?? 0
+                    ])
+                }
+            }
         }
     }
 
