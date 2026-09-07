@@ -2,218 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0b4f8a" />
   <title>ApproveHQ</title>
   <style>
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fa;color:#142033}body{min-height:100vh;min-height:100dvh}.app{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 82px)}.shell{width:100%;max-width:560px;margin:0 auto}.card,.panel{background:#fff;border-radius:20px;padding:20px;box-shadow:0 10px 30px rgba(20,32,51,.08)}.login-card{margin-top:8vh;padding:28px 22px}.brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}.mark{width:54px;height:54px;border-radius:15px;background:linear-gradient(145deg,#0b63a7,#073b6c);display:grid;place-items:center;color:white;font-size:27px;font-weight:800}.brand h1{font-size:28px;margin:0}.brand p{margin:3px 0 0;color:#68758a;font-size:14px}h1,h2,h3,p{margin-top:0}.sub,.muted{color:#68758a}.field{margin-bottom:16px}label{display:block;font-weight:650;font-size:14px;margin:0 0 7px}input,select{width:100%;height:52px;border:1px solid #ccd4df;border-radius:12px;padding:0 14px;font-size:17px;background:#fff;color:#142033;outline:none}input:focus,select:focus{border-color:#0b63a7;box-shadow:0 0 0 3px rgba(11,99,167,.12)}button{border:0;font:inherit}.primary{width:100%;height:52px;border-radius:12px;background:#0b63a7;color:#fff;font-size:17px;font-weight:750}.primary:disabled{opacity:.55}.hidden{display:none!important}.error{display:none;background:#fff1f1;color:#a12424;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:14px}.banner{display:none;position:sticky;top:8px;z-index:30;background:#fff1f1;color:#9a2525;border:1px solid #ffd2d2;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.topbar h2{margin:0;font-size:25px}.business-label{font-size:13px;color:#68758a;margin-bottom:3px}.actions{display:flex;gap:8px}.text-button{background:transparent;color:#0b63a7;padding:8px 4px;font-weight:700}.list{display:grid;gap:12px}.list-card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 7px 22px rgba(20,32,51,.07)}.job-button{width:100%;text-align:left;background:#fff;border-radius:16px;padding:16px;box-shadow:0 7px 22px rgba(20,32,51,.07);color:#142033}.job-button:active{transform:scale(.99);background:#f9fbfd}.row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.eyebrow{font-size:12px;color:#68758a;margin-bottom:4px}.title{font-size:17px;font-weight:800;line-height:1.25}.meta{font-size:14px;color:#68758a;margin-top:5px;line-height:1.45}.pill{font-size:11px;font-weight:750;text-transform:capitalize;background:#eef3f8;border-radius:999px;padding:6px 9px;white-space:nowrap}.view{font-size:14px;font-weight:750;color:#0b63a7;margin-top:12px;text-align:right}.loading,.empty{background:#fff;border-radius:16px;padding:26px 18px;text-align:center;color:#68758a}.detail-card{background:#fff;border-radius:18px;padding:19px;margin-bottom:12px;box-shadow:0 7px 22px rgba(20,32,51,.07)}.section-title{font-size:15px;font-weight:800;margin-bottom:10px}.comment{padding:11px 0;border-top:1px solid #edf0f4}.comment:first-child{border-top:0}.comment-author{font-size:13px;font-weight:750}.comment-body{font-size:15px;line-height:1.4;margin-top:3px}.square-status{font-size:18px;font-weight:800;margin-bottom:6px}.good{color:#177245}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);border-top:1px solid #dfe5ec;padding:8px 8px calc(env(safe-area-inset-bottom) + 8px);display:flex;justify-content:center}.bottom-inner{width:100%;max-width:560px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.tab{background:transparent;border-radius:12px;padding:9px 4px 7px;color:#667486;font-size:11px;font-weight:700}.tab span{display:block;font-size:20px;line-height:20px;margin-bottom:4px}.tab.active{background:#eaf3fb;color:#0b63a7}.tab.hidden{display:none!important}.footer{text-align:center;color:#8a95a5;font-size:11px;margin-top:18px}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fa;color:#142033;touch-action:manipulation}body{min-height:100vh;min-height:100dvh;-webkit-text-size-adjust:100%}.app{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 82px)}.shell{width:100%;max-width:560px;margin:0 auto}.card,.panel{background:#fff;border-radius:20px;padding:20px;box-shadow:0 10px 30px rgba(20,32,51,.08)}.login-card{margin-top:8vh;padding:28px 22px}.brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}.mark{width:54px;height:54px;border-radius:15px;background:linear-gradient(145deg,#0b63a7,#073b6c);display:grid;place-items:center;color:white;font-size:27px;font-weight:800}.brand h1{font-size:28px;margin:0}.brand p{margin:3px 0 0;color:#68758a;font-size:14px}h1,h2,h3,p{margin-top:0}.sub,.muted{color:#68758a}.field{margin-bottom:16px}label{display:block;font-weight:650;font-size:14px;margin:0 0 7px}input,select{width:100%;height:52px;border:1px solid #ccd4df;border-radius:12px;padding:0 14px;font-size:17px;background:#fff;color:#142033;outline:none}input:focus,select:focus{border-color:#0b63a7;box-shadow:0 0 0 3px rgba(11,99,167,.12)}button{border:0;font:inherit;touch-action:manipulation}.primary{width:100%;height:52px;border-radius:12px;background:#0b63a7;color:#fff;font-size:17px;font-weight:750}.primary:disabled{opacity:.55}.hidden{display:none!important}.error{display:none;background:#fff1f1;color:#a12424;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:14px}.banner{display:none;position:sticky;top:8px;z-index:30;background:#fff1f1;color:#9a2525;border:1px solid #ffd2d2;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.topbar h2{margin:0;font-size:25px}.business-label{font-size:13px;color:#68758a;margin-bottom:3px}.actions{display:flex;gap:8px}.text-button{background:transparent;color:#0b63a7;padding:8px 4px;font-weight:700}.list{display:grid;gap:12px}.list-card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 7px 22px rgba(20,32,51,.07)}.job-button{width:100%;text-align:left;background:#fff;border-radius:16px;padding:16px;box-shadow:0 7px 22px rgba(20,32,51,.07);color:#142033}.job-button:active{transform:scale(.99);background:#f9fbfd}.row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.eyebrow{font-size:12px;color:#68758a;margin-bottom:4px}.title{font-size:17px;font-weight:800;line-height:1.25}.meta{font-size:14px;color:#68758a;margin-top:5px;line-height:1.45}.pill{font-size:11px;font-weight:750;text-transform:capitalize;background:#eef3f8;border-radius:999px;padding:6px 9px;white-space:nowrap}.view{font-size:14px;font-weight:750;color:#0b63a7;margin-top:12px;text-align:right}.loading,.empty{background:#fff;border-radius:16px;padding:26px 18px;text-align:center;color:#68758a}.detail-card{background:#fff;border-radius:18px;padding:19px;margin-bottom:12px;box-shadow:0 7px 22px rgba(20,32,51,.07)}.section-title{font-size:15px;font-weight:800;margin-bottom:10px}.comment{padding:11px 0;border-top:1px solid #edf0f4}.comment:first-child{border-top:0}.comment-author{font-size:13px;font-weight:750}.comment-body{font-size:15px;line-height:1.4;margin-top:3px}.square-status{font-size:18px;font-weight:800;margin-bottom:6px}.good{color:#177245}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,255,255,.96);border-top:1px solid #dfe5ec;padding:8px 8px calc(env(safe-area-inset-bottom) + 8px);display:flex;justify-content:center}.bottom-inner{width:100%;max-width:560px;display:grid;grid-template-columns:repeat(4,1fr);gap:3px}.tab{background:transparent;border-radius:12px;padding:9px 4px 7px;color:#667486;font-size:11px;font-weight:700}.tab span{display:block;font-size:20px;line-height:20px;margin-bottom:4px}.tab.active{background:#eaf3fb;color:#0b63a7}.tab.hidden{display:none!important}.footer{text-align:center;color:#8a95a5;font-size:11px;margin-top:18px}
   </style>
 </head>
 <body>
-  <main class="app">
-    <div class="shell">
-      <div id="appBanner" class="banner"></div>
-
-      <section id="loginView" class="card login-card">
-        <div class="brand"><div class="mark">A✓</div><div><h1>ApproveHQ</h1><p>Customer approvals, simplified.</p></div></div>
-        <div id="loginError" class="error"></div>
-        <form id="loginForm">
-          <h2>Sign in</h2>
-          <p class="sub">Use the same phone number and passphrase you use on the web.</p>
-          <div class="field"><label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555" required /></div>
-          <div id="businessField" class="field hidden"><label for="business">Business</label><select id="business"></select></div>
-          <div class="field"><label for="passphrase">Passphrase</label><input id="passphrase" type="password" autocomplete="current-password" required /></div>
-          <button id="signIn" class="primary" type="submit">Sign in</button>
-        </form>
-      </section>
-
-      <section id="mainView" class="hidden">
-        <div id="jobsScreen" class="screen">
-          <div class="topbar"><div><div id="businessName" class="business-label">ApproveHQ</div><h2>Jobs</h2></div><div class="actions"><button id="refreshJobs" class="text-button" type="button">Refresh</button><button id="signOut" class="text-button" type="button">Sign out</button></div></div>
-          <div id="jobsMessage" class="loading">Loading jobs…</div><div id="jobsList" class="list"></div>
-        </div>
-
-        <div id="customersScreen" class="screen hidden">
-          <div class="topbar"><div><div class="business-label">Customers</div><h2>Customers</h2></div><button id="refreshCustomers" class="text-button" type="button">Refresh</button></div>
-          <div id="customersMessage" class="loading">Loading customers…</div><div id="customersList" class="list"></div>
-        </div>
-
-        <div id="paymentsScreen" class="screen hidden">
-          <div class="topbar"><div><div class="business-label">Square</div><h2>Payments</h2></div><button id="refreshPayments" class="text-button" type="button">Refresh</button></div>
-          <div id="paymentsMessage" class="loading">Loading payments…</div><div id="paymentsContent"></div>
-        </div>
-
-        <div id="teamScreen" class="screen hidden">
-          <div class="topbar"><div><div class="business-label">Access</div><h2>Team</h2></div><button id="refreshTeam" class="text-button" type="button">Refresh</button></div>
-          <div id="teamMessage" class="loading">Loading team…</div><div id="teamList" class="list"></div>
-        </div>
-
-        <div id="detailScreen" class="screen hidden">
-          <div class="topbar"><button id="backToJobs" class="text-button" type="button">‹ Jobs</button><button id="refreshJob" class="text-button" type="button">Refresh</button></div>
-          <div id="detailMessage" class="loading">Loading job…</div><div id="detailContent"></div>
-        </div>
-
-        <div class="footer">ApproveHQ mobile preview · Staging</div>
-      </section>
-    </div>
-  </main>
-
-  <nav id="bottomNav" class="bottom-nav hidden" aria-label="Primary">
-    <div class="bottom-inner">
-      <button class="tab active" data-tab="jobs" type="button"><span>▣</span>Jobs</button>
-      <button class="tab" data-tab="customers" type="button"><span>♟</span>Customers</button>
-      <button id="paymentsTab" class="tab" data-tab="payments" type="button"><span>$</span>Payments</button>
-      <button id="teamTab" class="tab" data-tab="team" type="button"><span>♟♟</span>Team</button>
-    </div>
-  </nav>
-
+  <main class="app"><div class="shell"><div id="appBanner" class="banner"></div><section id="loginView" class="card login-card"><div class="brand"><div class="mark">A✓</div><div><h1>ApproveHQ</h1><p>Customer approvals, simplified.</p></div></div><div id="loginError" class="error"></div><form id="loginForm"><h2>Sign in</h2><p class="sub">Use the same phone number and passphrase you use on the web.</p><div class="field"><label for="phone">Phone number</label><input id="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555" required /></div><div id="businessField" class="field hidden"><label for="business">Business</label><select id="business"></select></div><div class="field"><label for="passphrase">Passphrase</label><input id="passphrase" type="password" autocomplete="current-password" required /></div><button id="signIn" class="primary" type="submit">Sign in</button></form></section><section id="mainView" class="hidden"><div id="jobsScreen" class="screen"><div class="topbar"><div><div id="businessName" class="business-label">ApproveHQ</div><h2>Jobs</h2></div><div class="actions"><button id="refreshJobs" class="text-button" type="button">Refresh</button><button id="signOut" class="text-button" type="button">Sign out</button></div></div><div id="jobsMessage" class="loading">Loading jobs…</div><div id="jobsList" class="list"></div></div><div id="customersScreen" class="screen hidden"><div class="topbar"><div><div class="business-label">Customers</div><h2>Customers</h2></div><button id="refreshCustomers" class="text-button" type="button">Refresh</button></div><div id="customersMessage" class="loading">Loading customers…</div><div id="customersList" class="list"></div></div><div id="paymentsScreen" class="screen hidden"><div class="topbar"><div><div class="business-label">Square</div><h2>Payments</h2></div><button id="refreshPayments" class="text-button" type="button">Refresh</button></div><div id="paymentsMessage" class="loading">Loading payments…</div><div id="paymentsContent"></div></div><div id="teamScreen" class="screen hidden"><div class="topbar"><div><div class="business-label">Access</div><h2>Team</h2></div><button id="refreshTeam" class="text-button" type="button">Refresh</button></div><div id="teamMessage" class="loading">Loading team…</div><div id="teamList" class="list"></div></div><div id="detailScreen" class="screen hidden"><div class="topbar"><button id="backToJobs" class="text-button" type="button">‹ Jobs</button><button id="refreshJob" class="text-button" type="button">Refresh</button></div><div id="detailMessage" class="loading">Loading job…</div><div id="detailContent"></div></div><div class="footer">ApproveHQ mobile preview · Staging</div></section></div></main>
+  <nav id="bottomNav" class="bottom-nav hidden" aria-label="Primary"><div class="bottom-inner"><button class="tab active" data-tab="jobs" type="button"><span>▣</span>Jobs</button><button class="tab" data-tab="customers" type="button"><span>♟</span>Customers</button><button id="paymentsTab" class="tab" data-tab="payments" type="button"><span>$</span>Payments</button><button id="teamTab" class="tab" data-tab="team" type="button"><span>♟♟</span>Team</button></div></nav>
   <script>
     'use strict';
-    var API_BASE='https://cncapproval-staging.up.railway.app';
-    var mobileToken=null;
-    var currentUser=null;
-    var currentJobId=null;
-    var loaded={jobs:false,customers:false,payments:false,team:false};
-
-    function byId(id){return document.getElementById(id)}
-    function escapeHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}
-    function showLoginError(message){var el=byId('loginError');el.textContent=message||'';el.style.display=message?'block':'none'}
-    function showBanner(message){var el=byId('appBanner');el.textContent=message||'';el.style.display=message?'block':'none'}
-    function clearBanner(){showBanner('')}
-
-    window.addEventListener('error',function(event){showBanner('App error: '+(event.message||'Unknown JavaScript error'))});
-    window.addEventListener('unhandledrejection',function(event){var reason=event.reason&&event.reason.message?event.reason.message:String(event.reason||'Unknown error');showBanner('App error: '+reason)});
-
-    async function requestJson(path,options){
-      var headers=(options&&options.headers)||{};
-      if(mobileToken) headers.Authorization='Bearer '+mobileToken;
-      var response=await fetch(API_BASE+path,Object.assign({},options||{},{headers:headers}));
-      var data={};
-      try{data=await response.json()}catch(e){}
-      return {response:response,data:data};
-    }
-    function post(path,body){return requestJson(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})}
-    function get(path){return requestJson(path,{method:'GET'})}
-
-    byId('phone').addEventListener('blur',async function(){
-      var value=byId('phone').value.trim();if(!value)return;
-      try{
-        var result=await post('/api/mobile/auth/login',{phone:value,probe:true});
-        var memberships=result.data&&Array.isArray(result.data.memberships)?result.data.memberships:[];
-        if(result.response.ok&&memberships.length>1){
-          byId('business').innerHTML=memberships.map(function(m){return '<option value="'+Number(m.businessId)+'">'+escapeHtml(m.businessName)+'</option>'}).join('');
-          byId('businessField').classList.remove('hidden');
-        }else{byId('businessField').classList.add('hidden')}
-      }catch(e){}
-    });
-
-    byId('loginForm').addEventListener('submit',async function(event){
-      event.preventDefault();showLoginError('');clearBanner();
-      var button=byId('signIn');button.disabled=true;button.textContent='Signing in…';
-      try{
-        var payload={phone:byId('phone').value.trim(),passphrase:byId('passphrase').value,deviceName:'ApproveHQ iOS'};
-        if(!byId('businessField').classList.contains('hidden'))payload.businessId=Number(byId('business').value);
-        var result=await post('/api/mobile/auth/login',payload);
-        if(!result.response.ok){showLoginError(result.data.error||'Unable to sign in.');return}
-        mobileToken=result.data.token;
-        var me=await get('/api/mobile/auth/me');
-        if(!me.response.ok)throw new Error('Signed in, but could not load your account.');
-        currentUser=me.data.user;
-        byId('businessName').textContent=currentUser.businessName||'ApproveHQ';
-        var owner=currentUser.role==='owner'||currentUser.isMaster===true;
-        byId('paymentsTab').classList.toggle('hidden',!owner);
-        byId('teamTab').classList.toggle('hidden',!owner);
-        byId('loginView').classList.add('hidden');byId('mainView').classList.remove('hidden');byId('bottomNav').classList.remove('hidden');
-        await selectTab('jobs',true);
-      }catch(e){showLoginError(e&&e.message?e.message:'Could not reach ApproveHQ staging.')}finally{button.disabled=false;button.textContent='Sign in'}
-    });
-
-    function showOnly(screenId){
-      ['jobsScreen','customersScreen','paymentsScreen','teamScreen','detailScreen'].forEach(function(id){byId(id).classList.toggle('hidden',id!==screenId)});
-    }
-    async function selectTab(tab,force){
-      clearBanner();currentJobId=null;
-      var map={jobs:'jobsScreen',customers:'customersScreen',payments:'paymentsScreen',team:'teamScreen'};
-      showOnly(map[tab]||'jobsScreen');
-      document.querySelectorAll('.tab').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-tab')===tab)});
-      if(force||!loaded[tab]){
-        if(tab==='jobs')await loadJobs();
-        if(tab==='customers')await loadCustomers();
-        if(tab==='payments')await loadPayments();
-        if(tab==='team')await loadTeam();
-      }
-    }
-    document.querySelectorAll('.tab').forEach(function(el){el.addEventListener('click',function(){selectTab(el.getAttribute('data-tab'),false)})});
-
-    async function loadJobs(){
-      var msg=byId('jobsMessage'),list=byId('jobsList');list.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading jobs…';
-      try{
-        var result=await get('/api/mobile/jobs');if(!result.response.ok)throw new Error(result.data.error||'Could not load jobs.');
-        var jobs=Array.isArray(result.data.jobs)?result.data.jobs:[];loaded.jobs=true;
-        if(!jobs.length){msg.textContent='No jobs yet.';return}
-        msg.classList.add('hidden');
-        list.innerHTML=jobs.map(function(job){var status=String(job.status||'').split('_').join(' ');return '<button class="job-button" type="button" data-job-id="'+Number(job.id)+'"><div class="row"><div><div class="eyebrow">Job #'+escapeHtml(job.number)+'</div><div class="title">'+escapeHtml(job.title||'Untitled job')+'</div><div class="meta">'+escapeHtml(job.customer_name||'No customer')+'</div></div><div class="pill">'+escapeHtml(status)+'</div></div><div class="view">View job ›</div></button>'}).join('');
-      }catch(e){msg.textContent=e.message||'Could not load jobs.'}
-    }
-    byId('jobsList').addEventListener('click',function(event){
-      var button=event.target.closest('[data-job-id]');if(!button)return;
-      var id=Number(button.getAttribute('data-job-id'));if(id)openJob(id);
-    });
-
-    async function openJob(id){
-      clearBanner();currentJobId=id;showOnly('detailScreen');byId('bottomNav').classList.add('hidden');
-      var msg=byId('detailMessage'),content=byId('detailContent');content.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading job…';
-      try{
-        var result=await get('/api/mobile/jobs/'+id);if(!result.response.ok)throw new Error(result.data.error||'Could not load job.');
-        var job=result.data.job||{},comments=Array.isArray(result.data.comments)?result.data.comments:[],photos=Array.isArray(result.data.photos)?result.data.photos:[],approvals=Array.isArray(result.data.approvals)?result.data.approvals:[];
-        var status=String(job.status||'').split('_').join(' ');
-        content.innerHTML='<div class="detail-card"><div class="eyebrow">Job #'+escapeHtml(job.number)+'</div><div class="title" style="font-size:21px">'+escapeHtml(job.title||'Untitled job')+'</div><div style="margin:8px 0"><span class="pill">'+escapeHtml(status)+'</span></div><div class="meta"><strong>Customer:</strong> '+escapeHtml(job.customer_name||'—')+(job.customer_company?'<br><strong>Company:</strong> '+escapeHtml(job.customer_company):'')+(job.description?'<br><br>'+escapeHtml(job.description):'')+'</div></div><div class="detail-card"><div class="section-title">Photos & approvals</div><div class="meta">'+photos.length+' photo'+(photos.length===1?'':'s')+' · '+approvals.length+' approval event'+(approvals.length===1?'':'s')+'</div></div><div class="detail-card"><div class="section-title">Comments</div>'+(comments.length?comments.map(function(c){return '<div class="comment"><div class="comment-author">'+escapeHtml(c.author_name||c.author_type||'Comment')+'</div><div class="comment-body">'+escapeHtml(c.body||'')+'</div></div>'}).join(''):'<div class="meta">No comments yet.</div>')+'</div>';
-        msg.classList.add('hidden');
-      }catch(e){msg.textContent=e.message||'Could not load this job.';showBanner('Job detail failed: '+(e.message||'Unknown error'))}
-    }
-
-    async function loadCustomers(){
-      var msg=byId('customersMessage'),list=byId('customersList');list.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading customers…';
-      try{
-        var result=await get('/api/mobile/customers');if(!result.response.ok)throw new Error(result.data.error||'Could not load customers.');
-        var items=Array.isArray(result.data.customers)?result.data.customers:[];loaded.customers=true;
-        if(!items.length){msg.textContent='No customers yet.';return}
-        msg.classList.add('hidden');
-        list.innerHTML=items.map(function(c){return '<div class="list-card"><div class="title">'+escapeHtml(c.name||'Unnamed customer')+'</div><div class="meta">'+escapeHtml(c.company||'')+(c.company&&c.phone?'<br>':'')+escapeHtml(c.phone||'')+(c.email?'<br>'+escapeHtml(c.email):'')+'</div></div>'}).join('');
-      }catch(e){msg.textContent=e.message||'Could not load customers.'}
-    }
-
-    async function loadPayments(){
-      var msg=byId('paymentsMessage'),content=byId('paymentsContent');content.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading payments…';
-      try{
-        var result=await get('/api/mobile/payments');if(!result.response.ok)throw new Error(result.data.error||'Could not load payments.');loaded.payments=true;
-        var c=result.data.connection;msg.classList.add('hidden');
-        if(!c){content.innerHTML='<div class="panel"><div class="square-status">Square not connected</div><div class="meta">Connect Square from the web Payments settings for now.</div></div>';return}
-        content.innerHTML='<div class="panel"><div class="square-status good">Square connected</div><div class="meta">'+escapeHtml(c.locationName||'Square seller account')+'<br>'+escapeHtml(c.environment||'')+(c.connectedAt?'<br>Connected '+escapeHtml(new Date(c.connectedAt).toLocaleDateString()):'')+'</div></div>';
-      }catch(e){msg.textContent=e.message||'Could not load payments.'}
-    }
-
-    async function loadTeam(){
-      var msg=byId('teamMessage'),list=byId('teamList');list.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading team…';
-      try{
-        var result=await get('/api/mobile/team');if(!result.response.ok)throw new Error(result.data.error||'Could not load team.');var users=Array.isArray(result.data.users)?result.data.users:[];loaded.team=true;
-        if(!users.length){msg.textContent='No team members yet.';return}
-        msg.classList.add('hidden');
-        list.innerHTML=users.map(function(u){var state=u.disabled_at?'Disabled':'Active';return '<div class="list-card"><div class="row"><div><div class="title">'+escapeHtml(u.name||u.phone||'Team member')+'</div><div class="meta">'+escapeHtml(u.phone||'')+'<br>'+escapeHtml(u.role||'member')+'</div></div><div class="pill">'+state+'</div></div></div>'}).join('');
-      }catch(e){msg.textContent=e.message||'Could not load team.'}
-    }
-
-    byId('refreshJobs').addEventListener('click',function(){loadJobs()});
-    byId('refreshCustomers').addEventListener('click',function(){loadCustomers()});
-    byId('refreshPayments').addEventListener('click',function(){loadPayments()});
-    byId('refreshTeam').addEventListener('click',function(){loadTeam()});
-    byId('refreshJob').addEventListener('click',function(){if(currentJobId)openJob(currentJobId)});
-    byId('backToJobs').addEventListener('click',function(){byId('bottomNav').classList.remove('hidden');selectTab('jobs',false)});
-    byId('signOut').addEventListener('click',async function(){
-      try{await post('/api/mobile/auth/logout',{})}catch(e){}
-      mobileToken=null;currentUser=null;currentJobId=null;loaded={jobs:false,customers:false,payments:false,team:false};
-      byId('passphrase').value='';byId('mainView').classList.add('hidden');byId('bottomNav').classList.add('hidden');byId('loginView').classList.remove('hidden');
-    });
+    var API_BASE='https://cncapproval-staging.up.railway.app';var mobileToken=null;var currentUser=null;var currentJobId=null;var loaded={jobs:false,customers:false,payments:false,team:false};
+    function byId(id){return document.getElementById(id)}function escapeHtml(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]})}function showLoginError(message){var el=byId('loginError');el.textContent=message||'';el.style.display=message?'block':'none'}function showBanner(message){var el=byId('appBanner');el.textContent=message||'';el.style.display=message?'block':'none'}function clearBanner(){showBanner('')}
+    window.addEventListener('error',function(event){showBanner('App error: '+(event.message||'Unknown JavaScript error'))});window.addEventListener('unhandledrejection',function(event){var reason=event.reason&&event.reason.message?event.reason.message:String(event.reason||'Unknown error');showBanner('App error: '+reason)});
+    async function requestJson(path,options){var headers=(options&&options.headers)||{};if(mobileToken)headers.Authorization='Bearer '+mobileToken;var response=await fetch(API_BASE+path,Object.assign({},options||{},{headers:headers}));var data={};try{data=await response.json()}catch(e){}return {response:response,data:data}}function post(path,body){return requestJson(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})}function get(path){return requestJson(path,{method:'GET'})}
+    byId('phone').addEventListener('blur',async function(){var value=byId('phone').value.trim();if(!value)return;try{var result=await post('/api/mobile/auth/login',{phone:value,probe:true});var memberships=result.data&&Array.isArray(result.data.memberships)?result.data.memberships:[];if(result.response.ok&&memberships.length>1){byId('business').innerHTML=memberships.map(function(m){return '<option value="'+Number(m.businessId)+'">'+escapeHtml(m.businessName)+'</option>'}).join('');byId('businessField').classList.remove('hidden')}else{byId('businessField').classList.add('hidden')}}catch(e){}});
+    byId('loginForm').addEventListener('submit',async function(event){event.preventDefault();showLoginError('');clearBanner();var button=byId('signIn');button.disabled=true;button.textContent='Signing in…';try{var payload={phone:byId('phone').value.trim(),passphrase:byId('passphrase').value,deviceName:'ApproveHQ iOS'};if(!byId('businessField').classList.contains('hidden'))payload.businessId=Number(byId('business').value);var result=await post('/api/mobile/auth/login',payload);if(!result.response.ok){showLoginError(result.data.error||'Unable to sign in.');return}mobileToken=result.data.token;var me=await get('/api/mobile/auth/me');if(!me.response.ok)throw new Error('Signed in, but could not load your account.');currentUser=me.data.user;byId('businessName').textContent=currentUser.businessName||'ApproveHQ';var owner=currentUser.role==='owner'||currentUser.isMaster===true;byId('paymentsTab').classList.toggle('hidden',!owner);byId('teamTab').classList.toggle('hidden',!owner);byId('loginView').classList.add('hidden');byId('mainView').classList.remove('hidden');byId('bottomNav').classList.remove('hidden');await selectTab('jobs',true)}catch(e){showLoginError(e&&e.message?e.message:'Could not reach ApproveHQ staging.')}finally{button.disabled=false;button.textContent='Sign in'}});
+    function showOnly(screenId){['jobsScreen','customersScreen','paymentsScreen','teamScreen','detailScreen'].forEach(function(id){byId(id).classList.toggle('hidden',id!==screenId)})}async function selectTab(tab,force){clearBanner();currentJobId=null;var map={jobs:'jobsScreen',customers:'customersScreen',payments:'paymentsScreen',team:'teamScreen'};showOnly(map[tab]||'jobsScreen');document.querySelectorAll('.tab').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-tab')===tab)});if(force||!loaded[tab]){if(tab==='jobs')await loadJobs();if(tab==='customers')await loadCustomers();if(tab==='payments')await loadPayments();if(tab==='team')await loadTeam()}}document.querySelectorAll('.tab').forEach(function(el){el.addEventListener('click',function(){selectTab(el.getAttribute('data-tab'),false)})});
+    async function loadJobs(){var msg=byId('jobsMessage'),list=byId('jobsList');list.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading jobs…';try{var result=await get('/api/mobile/jobs');if(!result.response.ok)throw new Error(result.data.error||'Could not load jobs.');var jobs=Array.isArray(result.data.jobs)?result.data.jobs:[];loaded.jobs=true;if(!jobs.length){msg.textContent='No jobs yet.';return}msg.classList.add('hidden');list.innerHTML=jobs.map(function(job){var status=String(job.status||'').split('_').join(' ');return '<button class="job-button" type="button" data-job-id="'+Number(job.id)+'"><div class="row"><div><div class="eyebrow">Job #'+escapeHtml(job.number)+'</div><div class="title">'+escapeHtml(job.title||'Untitled job')+'</div><div class="meta">'+escapeHtml(job.customer_name||'No customer')+'</div></div><div class="pill">'+escapeHtml(status)+'</div></div><div class="view">View job ›</div></button>'}).join('')}catch(e){msg.textContent=e.message||'Could not load jobs.'}}
+    byId('jobsList').addEventListener('click',function(event){var button=event.target.closest('[data-job-id]');if(!button)return;openJob(Number(button.getAttribute('data-job-id')))});
+    async function openJob(id){currentJobId=id;showOnly('detailScreen');byId('bottomNav').classList.add('hidden');await loadJobDetail(id)}
+    async function loadJobDetail(id){var msg=byId('detailMessage'),content=byId('detailContent');content.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading job…';try{var result=await get('/api/mobile/jobs/'+encodeURIComponent(id));if(!result.response.ok)throw new Error(result.data.error||'Could not load job.');var job=result.data.job||{},comments=Array.isArray(result.data.comments)?result.data.comments:[],photos=Array.isArray(result.data.photos)?result.data.photos:[],approvals=Array.isArray(result.data.approvals)?result.data.approvals:[];msg.classList.add('hidden');var status=String(job.status||'').split('_').join(' ');var html='<div class="detail-card"><div class="eyebrow">Job #'+escapeHtml(job.number)+'</div><div class="row"><div class="title">'+escapeHtml(job.title||'Untitled job')+'</div><div class="pill">'+escapeHtml(status)+'</div></div><div class="meta">'+escapeHtml(job.customer_name||'No customer')+(job.customer_company?' · '+escapeHtml(job.customer_company):'')+'</div></div>';if(job.description)html+='<div class="detail-card"><div class="section-title">Description</div><div class="meta">'+escapeHtml(job.description)+'</div></div>';html+='<div class="detail-card"><div class="section-title">Activity</div><div class="meta">'+photos.length+' photo'+(photos.length===1?'':'s')+' · '+approvals.length+' approval record'+(approvals.length===1?'':'s')+' · '+comments.length+' comment'+(comments.length===1?'':'s')+'</div></div>';html+='<div class="detail-card"><div class="section-title">Comments</div>'+(comments.length?comments.map(function(c){return '<div class="comment"><div class="comment-author">'+escapeHtml(c.author_name||c.author||'Comment')+'</div><div class="comment-body">'+escapeHtml(c.body||c.comment||'')+'</div></div>'}).join(''):'<div class="meta">No comments yet.</div>')+'</div>';content.innerHTML=html}catch(e){msg.textContent='Job detail failed: '+(e.message||'Unknown error')}}
+    byId('backToJobs').addEventListener('click',function(){byId('bottomNav').classList.remove('hidden');selectTab('jobs',false)});byId('refreshJob').addEventListener('click',function(){if(currentJobId)loadJobDetail(currentJobId)});byId('refreshJobs').addEventListener('click',function(){loadJobs()});
+    async function loadCustomers(){var msg=byId('customersMessage'),list=byId('customersList');list.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading customers…';try{var result=await get('/api/mobile/customers');if(!result.response.ok)throw new Error(result.data.error||'Could not load customers.');var rows=Array.isArray(result.data.customers)?result.data.customers:[];loaded.customers=true;if(!rows.length){msg.textContent='No customers yet.';return}msg.classList.add('hidden');list.innerHTML=rows.map(function(c){return '<div class="list-card"><div class="title">'+escapeHtml(c.name||'Unnamed customer')+'</div><div class="meta">'+escapeHtml(c.company||'')+(c.company&&c.phone?' · ':'')+escapeHtml(c.phone||'')+'</div>'+(c.email?'<div class="meta">'+escapeHtml(c.email)+'</div>':'')+'</div>'}).join('')}catch(e){msg.textContent=e.message||'Could not load customers.'}}
+    async function loadPayments(){var msg=byId('paymentsMessage'),content=byId('paymentsContent');content.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading payments…';try{var result=await get('/api/mobile/payments');if(!result.response.ok)throw new Error(result.data.error||'Could not load payments.');loaded.payments=true;msg.classList.add('hidden');var s=result.data.square||{};content.innerHTML='<div class="detail-card"><div class="square-status '+(s.connected?'good':'')+'">'+(s.connected?'Square connected':'Square not connected')+'</div><div class="meta">'+(s.connected?'Payment tools are available for this business.':'Connect Square from the web app before using payments.')+'</div></div>'}catch(e){msg.textContent=e.message||'Could not load payments.'}}
+    async function loadTeam(){var msg=byId('teamMessage'),list=byId('teamList');list.innerHTML='';msg.classList.remove('hidden');msg.textContent='Loading team…';try{var result=await get('/api/mobile/team');if(!result.response.ok)throw new Error(result.data.error||'Could not load team.');var rows=Array.isArray(result.data.users)?result.data.users:[];loaded.team=true;if(!rows.length){msg.textContent='No team members.';return}msg.classList.add('hidden');list.innerHTML=rows.map(function(u){return '<div class="list-card"><div class="row"><div><div class="title">'+escapeHtml(u.name||u.phone||'Team member')+'</div><div class="meta">'+escapeHtml(u.phone||'')+'</div></div><div class="pill">'+escapeHtml(u.role||'member')+'</div></div></div>'}).join('')}catch(e){msg.textContent=e.message||'Could not load team.'}}
+    byId('refreshCustomers').addEventListener('click',function(){loadCustomers()});byId('refreshPayments').addEventListener('click',function(){loadPayments()});byId('refreshTeam').addEventListener('click',function(){loadTeam()});
+    byId('signOut').addEventListener('click',async function(){try{await post('/api/mobile/auth/logout',{})}catch(e){}mobileToken=null;currentUser=null;currentJobId=null;loaded={jobs:false,customers:false,payments:false,team:false};byId('mainView').classList.add('hidden');byId('bottomNav').classList.add('hidden');byId('loginView').classList.remove('hidden');byId('passphrase').value='';showLoginError('');clearBanner()});
   </script>
 </body>
 </html>
