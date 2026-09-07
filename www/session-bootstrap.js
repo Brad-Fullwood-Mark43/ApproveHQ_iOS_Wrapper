@@ -1,7 +1,21 @@
 'use strict';
 
 (function () {
-  const secure = () => window.Capacitor?.Plugins?.SecureSession || null;
+  let securePlugin = null;
+  const secure = () => {
+    if (securePlugin) return securePlugin;
+    const cap = window.Capacitor;
+    if (!cap) return null;
+    if (cap.Plugins?.SecureSession) {
+      securePlugin = cap.Plugins.SecureSession;
+      return securePlugin;
+    }
+    if (typeof cap.registerPlugin === 'function' && cap.isPluginAvailable?.('SecureSession')) {
+      securePlugin = cap.registerPlugin('SecureSession');
+      return securePlugin;
+    }
+    return null;
+  };
   const loginForm = document.getElementById('loginForm');
   const signIn = document.getElementById('signIn');
   const loginView = document.getElementById('loginView');
@@ -12,7 +26,7 @@
   const teamTab = document.getElementById('teamTab');
 
   async function waitForSecure() {
-    for (let i = 0; i < 20; i += 1) {
+    for (let i = 0; i < 40; i += 1) {
       const plugin = secure();
       if (plugin) return plugin;
       await new Promise(resolve => setTimeout(resolve, 50));
