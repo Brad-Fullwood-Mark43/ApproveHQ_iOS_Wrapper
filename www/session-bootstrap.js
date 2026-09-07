@@ -11,20 +11,29 @@
   const paymentsTab = document.getElementById('paymentsTab');
   const teamTab = document.getElementById('teamTab');
 
+  async function waitForSecure() {
+    for (let i = 0; i < 20; i += 1) {
+      const plugin = secure();
+      if (plugin) return plugin;
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    return null;
+  }
+
   async function saveToken(token) {
-    const plugin = secure();
+    const plugin = await waitForSecure();
     if (!plugin || !token) return;
     try { await plugin.set({ value: token }); } catch (err) { console.error('Could not persist secure session', err); }
   }
 
   async function clearToken() {
-    const plugin = secure();
+    const plugin = await waitForSecure();
     if (!plugin) return;
     try { await plugin.remove({}); } catch (err) { console.error('Could not clear secure session', err); }
   }
 
   async function readToken() {
-    const plugin = secure();
+    const plugin = await waitForSecure();
     if (!plugin) return null;
     try {
       const result = await plugin.get({});
@@ -62,9 +71,6 @@
     if (message) showLoginError(message);
   }
 
-  // Give all API calls a consistent offline failure and automatically clear a
-  // revoked/expired mobile session. Login 401s are excluded because they mean
-  // bad credentials, not an expired existing session.
   const baseFetch = window.fetch.bind(window);
   window.fetch = async function (input, init) {
     if (!navigator.onLine) throw new Error('You are offline. Reconnect and try again.');
@@ -84,24 +90,19 @@
     if (!mainView.classList.contains('hidden') && currentJobId) loadJob(currentJobId);
   });
 
-  // Open external HTTPS destinations such as Square checkout in Safari rather
-  // than trapping them inside the Capacitor WKWebView.
   document.addEventListener('click', async event => {
     const link = event.target.closest('a[href]');
     if (!link) return;
     let url;
     try { url = new URL(link.href); } catch { return; }
     if (url.protocol !== 'https:' || url.origin === API_BASE) return;
-    const plugin = secure();
+    const plugin = await waitForSecure();
     if (!plugin?.openURL) return;
     event.preventDefault();
     try { await plugin.openURL({ url: url.toString() }); }
     catch (err) { showBanner(err?.message || 'Could not open the link.'); }
   });
 
-  // Capture sign-in before the original handler. This lets us enter the app
-  // shell immediately after auth, load Jobs separately, and refresh full user
-  // permissions in parallel instead of making the user wait on every request.
   loginForm.addEventListener('submit', async event => {
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -129,14 +130,7 @@
 
       mobileToken = result.data.token;
       await saveToken(mobileToken);
-
-      // The login response has enough data to enter the shell now. Owner/master
-      // controls are finalized after /me returns.
-      applyUser({
-        ...(result.data.user || {}),
-        role: 'member',
-        isMaster: false
-      });
+      applyUser({ ...(result.data.user || {}), role: 'member', isMaster: false });
       revealApp();
       selectTab('jobs', true).catch(err => showBanner(err?.message || 'Could not load jobs.'));
 
@@ -150,8 +144,6 @@
     }
   }, true);
 
-  // The regular sign-out flow revokes the token server-side; clear the Keychain
-  // copy at the same time so the next launch cannot restore it.
   document.getElementById('signOut').addEventListener('click', () => {
     clearToken();
   });
@@ -176,9 +168,6 @@
       revealApp();
       selectTab('jobs', true).catch(err => showBanner(err?.message || 'Could not load jobs.'));
     } catch (err) {
-      // Keep the Keychain token on transient network failures. The user should
-      // not be forced to re-enter credentials because Railway or the network is
-      // temporarily unavailable.
       showBanner(err?.message || 'Could not restore your session yet.');
     } finally {
       signIn.disabled = false;
