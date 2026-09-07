@@ -145,7 +145,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        installNotificationDelegate(reason: "applicationDidBecomeActive")
+        handleAppBecameActive(application, reason: "applicationDidBecomeActive")
+    }
+
+    func handleAppBecameActive(_ application: UIApplication, reason: String) {
+        installNotificationDelegate(reason: reason)
         registerForPushIfAuthorized(application)
         scheduleLocalNotificationDiagnosticOnce()
     }
