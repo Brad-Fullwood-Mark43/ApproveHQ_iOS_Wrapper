@@ -2,6 +2,10 @@
 
 (function () {
   let securePlugin = null;
+  let pushRegistrationInFlight = null;
+  let lastPushRegistrationAt = 0;
+  const PUSH_REGISTRATION_REFRESH_MS = 30000;
+
   const secure = () => {
     if (securePlugin) return securePlugin;
     const cap = window.Capacitor;
@@ -86,34 +90,53 @@
     bottomNav.classList.remove('hidden');
   }
 
-  async function registerPush() {
+  async function registerPush(force = false) {
     if (!mobileToken) return;
-    const plugin = await waitForSecure();
-    if (!plugin?.requestPushPermission || !plugin?.getPushToken) return;
-    try {
-      const permission = await plugin.requestPushPermission({});
-      if (!permission?.granted) return;
+    const now = Date.now();
+    if (!force && now - lastPushRegistrationAt < PUSH_REGISTRATION_REFRESH_MS) return;
+    if (pushRegistrationInFlight) return pushRegistrationInFlight;
 
-      let nativeToken = null;
-      for (let i = 0; i < 12; i += 1) {
-        const result = await plugin.getPushToken({});
-        if (result?.deviceToken) {
-          nativeToken = result;
-          break;
+    pushRegistrationInFlight = (async () => {
+      const plugin = await waitForSecure();
+      if (!plugin?.requestPushPermission || !plugin?.getPushToken) return;
+      try {
+        const permission = await plugin.requestPushPermission({});
+        if (!permission?.granted) return;
+
+        let nativeToken = null;
+        for (let i = 0; i < 40; i += 1) {
+          const result = await plugin.getPushToken({});
+          if (result?.deviceToken) {
+            nativeToken = result;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 250));
         }
-        await new Promise(resolve => setTimeout(resolve, 250));
-      }
-      if (!nativeToken?.deviceToken) return;
+        if (!nativeToken?.deviceToken) {
+          console.warn('Apple did not return an APNs token within 10 seconds. Push registration will retry when the app becomes active.');
+          return;
+        }
 
-      const response = await post('/api/mobile/push/register', {
-        deviceToken: nativeToken.deviceToken,
-        environment: nativeToken.environment || 'production'
-      });
-      if (!response.response.ok) {
-        console.error('Could not register native push token', response.data?.error || response.response.status);
+        const response = await post('/api/mobile/push/register', {
+          deviceToken: nativeToken.deviceToken,
+          environment: nativeToken.environment || 'production'
+        });
+        if (!response.response.ok) {
+          console.error('Could not register native push token', response.data?.error || response.response.status);
+          return;
+        }
+
+        lastPushRegistrationAt = Date.now();
+        console.log('ApproveHQ automatic push registration succeeded', nativeToken.environment || 'production');
+      } catch (err) {
+        console.error('Native push setup failed', err);
       }
-    } catch (err) {
-      console.error('Native push setup failed', err);
+    })();
+
+    try {
+      await pushRegistrationInFlight;
+    } finally {
+      pushRegistrationInFlight = null;
     }
   }
 
@@ -156,7 +179,7 @@
   }
 
   async function afterAuthenticated() {
-    registerPush();
+    registerPush(true);
     consumePendingPush();
   }
 
@@ -189,10 +212,17 @@
   window.addEventListener('online', () => {
     showBanner('');
     if (!mainView.classList.contains('hidden') && currentJobId) loadJob(currentJobId);
+    registerPush();
   });
-  window.addEventListener('focus', () => consumePendingPush());
+  window.addEventListener('focus', () => {
+    registerPush();
+    consumePendingPush();
+  });
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') consumePendingPush();
+    if (document.visibilityState === 'visible') {
+      registerPush();
+      consumePendingPush();
+    }
   });
 
   document.addEventListener('click', async event => {
