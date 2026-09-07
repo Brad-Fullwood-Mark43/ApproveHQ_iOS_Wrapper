@@ -24,6 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>ApproveHQ uses your camera so you can add job photos for customer review and approval.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ApproveHQ accesses your photo library so you can attach existing job photos for customer review and approval.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
