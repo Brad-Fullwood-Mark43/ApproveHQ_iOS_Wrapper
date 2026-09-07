@@ -44,6 +44,19 @@
     }
   }
 
+  async function authenticateSavedSession() {
+    const plugin = await waitForSecure();
+    if (!plugin?.authenticate) return true;
+    try {
+      const result = await plugin.authenticate({ reason: 'Unlock ApproveHQ' });
+      if (result?.available === false) return true;
+      return result?.authenticated === true;
+    } catch (err) {
+      console.error('Biometric authentication failed', err);
+      return false;
+    }
+  }
+
   function applyUser(user) {
     if (!user) return;
     currentUser = user;
@@ -156,6 +169,17 @@
     if (!saved) return;
 
     signIn.disabled = true;
+    signIn.textContent = 'Unlocking…';
+
+    const authenticated = await authenticateSavedSession();
+    if (!authenticated) {
+      mobileToken = null;
+      showLoginError('Face ID was not completed. Sign in with your passphrase or reopen ApproveHQ to try again.');
+      signIn.disabled = false;
+      signIn.textContent = 'Sign in';
+      return;
+    }
+
     signIn.textContent = 'Restoring session…';
     mobileToken = saved;
     try {
