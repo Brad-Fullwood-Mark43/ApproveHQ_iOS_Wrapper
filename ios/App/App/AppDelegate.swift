@@ -151,6 +151,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
     private func registerForPushIfAuthorized(_ application: UIApplication) {
         UNUserNotificationCenter.current().getNotificationSettings { settings in
+            print("ApproveHQ notification settings: auth=\(settings.authorizationStatus.rawValue) alert=\(settings.alertSetting.rawValue) center=\(settings.notificationCenterSetting.rawValue) lock=\(settings.lockScreenSetting.rawValue) sound=\(settings.soundSetting.rawValue)")
             switch settings.authorizationStatus {
             case .authorized, .provisional, .ephemeral:
                 DispatchQueue.main.async {
@@ -175,10 +176,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        completionHandler([.banner, .sound, .badge])
+        print("ApproveHQ remote notification received while foreground: \(notification.request.content.userInfo)")
+        completionHandler([.banner, .list, .sound, .badge])
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("ApproveHQ notification opened by user: \(response.notification.request.content.userInfo)")
         if let path = response.notification.request.content.userInfo["path"] as? String, !path.isEmpty {
             UserDefaults.standard.set(path, forKey: pushPathKey)
         }
