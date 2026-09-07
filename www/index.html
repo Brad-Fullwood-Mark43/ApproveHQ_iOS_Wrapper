@@ -6,32 +6,108 @@
   <meta name="theme-color" content="#0b4f8a" />
   <title>ApproveHQ</title>
   <style>
-    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fa;color:#142033}body{min-height:100vh;min-height:100dvh}.app{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 32px) 24px calc(env(safe-area-inset-bottom) + 24px);display:flex;align-items:center;justify-content:center}.card{width:100%;max-width:430px;background:#fff;border-radius:24px;padding:32px 24px;box-shadow:0 18px 50px rgba(20,32,51,.12)}.brand{display:flex;align-items:center;gap:14px;margin-bottom:30px}.mark{width:54px;height:54px;border-radius:15px;background:linear-gradient(145deg,#0b63a7,#073b6c);display:grid;place-items:center;color:white;font-size:27px;font-weight:800}.brand h1{font-size:28px;margin:0}.brand p{margin:3px 0 0;color:#68758a;font-size:14px}h2{font-size:22px;margin:0 0 8px}.sub{color:#68758a;margin:0 0 24px;line-height:1.45}.field{margin-bottom:16px}label{display:block;font-weight:650;font-size:14px;margin:0 0 7px}input,select{width:100%;height:52px;border:1px solid #ccd4df;border-radius:12px;padding:0 14px;font-size:17px;background:#fff;color:#142033;outline:none}input:focus,select:focus{border-color:#0b63a7;box-shadow:0 0 0 3px rgba(11,99,167,.12)}button{width:100%;height:52px;border:0;border-radius:12px;background:#0b63a7;color:#fff;font-size:17px;font-weight:700;margin-top:6px}button:disabled{opacity:.55}.error{display:none;background:#fff1f1;color:#a12424;border-radius:10px;padding:11px 12px;margin:0 0 16px;font-size:14px}.status{margin-top:18px;text-align:center;color:#7b8797;font-size:12px}.hidden{display:none}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f7fa;color:#142033}body{min-height:100vh;min-height:100dvh}.app{min-height:100vh;min-height:100dvh;padding:calc(env(safe-area-inset-top) + 20px) 18px calc(env(safe-area-inset-bottom) + 20px)}.shell{width:100%;max-width:520px;margin:0 auto}.card{background:#fff;border-radius:24px;padding:28px 22px;box-shadow:0 18px 50px rgba(20,32,51,.10)}.brand{display:flex;align-items:center;gap:14px;margin-bottom:26px}.mark{width:54px;height:54px;border-radius:15px;background:linear-gradient(145deg,#0b63a7,#073b6c);display:grid;place-items:center;color:white;font-size:27px;font-weight:800}.brand h1{font-size:28px;margin:0}.brand p{margin:3px 0 0;color:#68758a;font-size:14px}h2{font-size:22px;margin:0 0 8px}.sub{color:#68758a;margin:0 0 22px;line-height:1.45}.field{margin-bottom:16px}label{display:block;font-weight:650;font-size:14px;margin:0 0 7px}input,select{width:100%;height:52px;border:1px solid #ccd4df;border-radius:12px;padding:0 14px;font-size:17px;background:#fff;color:#142033;outline:none}input:focus,select:focus{border-color:#0b63a7;box-shadow:0 0 0 3px rgba(11,99,167,.12)}button{width:100%;height:52px;border:0;border-radius:12px;background:#0b63a7;color:#fff;font-size:17px;font-weight:700;margin-top:6px}button:disabled{opacity:.55}.error{display:none;background:#fff1f1;color:#a12424;border-radius:10px;padding:11px 12px;margin:0 0 16px;font-size:14px}.hidden{display:none}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.topbar h2{margin:0}.linkbtn{width:auto;height:auto;background:transparent;color:#0b63a7;margin:0;padding:8px 0;font-size:15px}.jobs{display:grid;gap:12px}.job{background:#fff;border-radius:16px;padding:16px 17px;box-shadow:0 8px 25px rgba(20,32,51,.07)}.job-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.job-number{font-size:13px;color:#68758a;margin-bottom:4px}.job-title{font-size:17px;font-weight:750}.job-customer{font-size:14px;color:#68758a;margin-top:5px}.status-pill{font-size:12px;font-weight:700;text-transform:capitalize;background:#eef3f8;border-radius:999px;padding:6px 9px;white-space:nowrap}.empty{text-align:center;color:#68758a;background:#fff;border-radius:16px;padding:28px 18px}.loading{text-align:center;color:#68758a;padding:22px}.footer{margin-top:18px;text-align:center;color:#8a95a5;font-size:12px}
   </style>
 </head>
 <body>
   <main class="app">
-    <section class="card">
-      <div class="brand"><div class="mark">A✓</div><div><h1>ApproveHQ</h1><p>Customer approvals, simplified.</p></div></div>
-      <div id="error" class="error"></div>
-      <form id="loginForm">
-        <h2>Sign in</h2>
-        <p class="sub">Use the same phone number and passphrase you use for ApproveHQ on the web.</p>
-        <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555" required /></div>
-        <div id="businessField" class="field hidden"><label for="business">Business</label><select id="business" name="business"></select></div>
-        <div class="field"><label for="passphrase">Passphrase</label><input id="passphrase" name="passphrase" type="password" autocomplete="current-password" required /></div>
-        <button id="signIn" type="submit">Sign in</button>
-      </form>
-      <div class="status">Native mobile preview</div>
-    </section>
+    <div class="shell">
+      <section id="loginView" class="card">
+        <div class="brand"><div class="mark">A✓</div><div><h1>ApproveHQ</h1><p>Customer approvals, simplified.</p></div></div>
+        <div id="error" class="error"></div>
+        <form id="loginForm">
+          <h2>Sign in</h2>
+          <p class="sub">Use the same phone number and passphrase you use for ApproveHQ on the web.</p>
+          <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555" required /></div>
+          <div id="businessField" class="field hidden"><label for="business">Business</label><select id="business" name="business"></select></div>
+          <div class="field"><label for="passphrase">Passphrase</label><input id="passphrase" name="passphrase" type="password" autocomplete="current-password" required /></div>
+          <button id="signIn" type="submit">Sign in</button>
+        </form>
+      </section>
+
+      <section id="jobsView" class="hidden">
+        <div class="topbar"><div><div id="businessName" class="job-number">ApproveHQ</div><h2>Jobs</h2></div><button id="signOut" class="linkbtn" type="button">Sign out</button></div>
+        <div id="jobsMessage" class="loading">Loading jobs…</div>
+        <div id="jobs" class="jobs"></div>
+      </section>
+      <div class="footer">ApproveHQ mobile preview</div>
+    </div>
   </main>
+
   <script>
     const API_BASE='https://www.4fenterprises.org';
-    const form=document.getElementById('loginForm');const phone=document.getElementById('phone');const passphrase=document.getElementById('passphrase');const businessField=document.getElementById('businessField');const business=document.getElementById('business');const errorBox=document.getElementById('error');const button=document.getElementById('signIn');
+    let mobileToken=null;
+    let currentUser=null;
+
+    const loginView=document.getElementById('loginView');
+    const jobsView=document.getElementById('jobsView');
+    const form=document.getElementById('loginForm');
+    const phone=document.getElementById('phone');
+    const passphrase=document.getElementById('passphrase');
+    const businessField=document.getElementById('businessField');
+    const business=document.getElementById('business');
+    const errorBox=document.getElementById('error');
+    const button=document.getElementById('signIn');
+    const jobsEl=document.getElementById('jobs');
+    const jobsMessage=document.getElementById('jobsMessage');
+    const businessName=document.getElementById('businessName');
+
     function showError(message){errorBox.textContent=message;errorBox.style.display=message?'block':'none'}
-    async function api(path,body){const response=await fetch(API_BASE+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});let data={};try{data=await response.json()}catch{}return{response,data}}
-    phone.addEventListener('blur',async()=>{const value=phone.value.trim();if(!value)return;try{const {response,data}=await api('/api/auth/login',{phone:value,probe:true});if(response.ok&&Array.isArray(data.memberships)&&data.memberships.length>1){business.innerHTML=data.memberships.map(m=>`<option value="${m.businessId}">${m.businessName}</option>`).join('');businessField.classList.remove('hidden')}else{businessField.classList.add('hidden')}}catch{}});
-    form.addEventListener('submit',async(event)=>{event.preventDefault();showError('');button.disabled=true;button.textContent='Signing in…';try{const payload={phone:phone.value.trim(),passphrase:passphrase.value};if(!businessField.classList.contains('hidden'))payload.businessId=Number(business.value);const {response,data}=await api('/api/auth/login',payload);if(!response.ok){showError(data.error||'Unable to sign in.');return}document.querySelector('.card').innerHTML='<div class="brand"><div class="mark">A✓</div><div><h1>ApproveHQ</h1><p>Signed in</p></div></div><h2>Mobile connection successful</h2><p class="sub">The native ApproveHQ shell reached the existing backend. Jobs are the next screen.</p>'}catch(err){showError('Could not reach ApproveHQ. Check your connection and try again.')}finally{button.disabled=false;button.textContent='Sign in'}});
+
+    async function post(path,body){
+      const response=await fetch(API_BASE+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      let data={};try{data=await response.json()}catch{}
+      return{response,data};
+    }
+
+    async function get(path){
+      const response=await fetch(API_BASE+path,{headers:{Authorization:`Bearer ${mobileToken}`}});
+      let data={};try{data=await response.json()}catch{}
+      return{response,data};
+    }
+
+    phone.addEventListener('blur',async()=>{
+      const value=phone.value.trim();if(!value)return;
+      try{
+        const {response,data}=await post('/api/mobile/auth/login',{phone:value,probe:true});
+        if(response.ok&&Array.isArray(data.memberships)&&data.memberships.length>1){
+          business.innerHTML=data.memberships.map(m=>`<option value="${m.businessId}">${m.businessName}</option>`).join('');
+          businessField.classList.remove('hidden');
+        }else{
+          businessField.classList.add('hidden');
+        }
+      }catch{}
+    });
+
+    async function loadJobs(){
+      jobsEl.innerHTML='';jobsMessage.textContent='Loading jobs…';jobsMessage.classList.remove('hidden');
+      const {response,data}=await get('/api/mobile/jobs');
+      if(!response.ok){jobsMessage.textContent=data.error||'Could not load jobs.';return;}
+      const jobs=Array.isArray(data.jobs)?data.jobs:[];
+      if(!jobs.length){jobsMessage.textContent='No jobs yet.';return;}
+      jobsMessage.classList.add('hidden');
+      jobsEl.innerHTML=jobs.map(job=>`<article class="job"><div class="job-head"><div><div class="job-number">Job #${job.number}</div><div class="job-title">${escapeHtml(job.title)}</div><div class="job-customer">${escapeHtml(job.customer_name||'No customer')}</div></div><div class="status-pill">${escapeHtml((job.status||'').replaceAll('_',' '))}</div></div></article>`).join('');
+    }
+
+    function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]))}
+
+    form.addEventListener('submit',async(event)=>{
+      event.preventDefault();showError('');button.disabled=true;button.textContent='Signing in…';
+      try{
+        const payload={phone:phone.value.trim(),passphrase:passphrase.value,deviceName:'ApproveHQ iOS'};
+        if(!businessField.classList.contains('hidden'))payload.businessId=Number(business.value);
+        const {response,data}=await post('/api/mobile/auth/login',payload);
+        if(!response.ok){showError(data.error||'Unable to sign in.');return;}
+        mobileToken=data.token;currentUser=data.user;
+        businessName.textContent=currentUser?.businessName||'ApproveHQ';
+        loginView.classList.add('hidden');jobsView.classList.remove('hidden');
+        await loadJobs();
+      }catch(err){showError('Could not reach ApproveHQ. Check your connection and try again.')}finally{button.disabled=false;button.textContent='Sign in'}
+    });
+
+    document.getElementById('signOut').addEventListener('click',()=>{
+      mobileToken=null;currentUser=null;passphrase.value='';jobsEl.innerHTML='';jobsView.classList.add('hidden');loginView.classList.remove('hidden');
+    });
   </script>
 </body>
 </html>
