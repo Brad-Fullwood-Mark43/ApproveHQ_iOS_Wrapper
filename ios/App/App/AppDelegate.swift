@@ -138,15 +138,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     private let pushPathKey = "ApproveHQPendingPushPath"
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        UNUserNotificationCenter.current().delegate = self
+        installNotificationDelegate(reason: "didFinishLaunching")
         registerForPushIfAuthorized(application)
         return true
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Re-register whenever the app becomes active. APNs device tokens can change,
-        // and this also recovers cleanly after the user changes notification settings.
+        // Reassert delegate ownership after the Capacitor bridge and scene are active.
+        // This makes foreground notification handling deterministic even if another
+        // framework temporarily replaces UNUserNotificationCenter.current().delegate.
+        installNotificationDelegate(reason: "applicationDidBecomeActive")
         registerForPushIfAuthorized(application)
+    }
+
+    private func installNotificationDelegate(reason: String) {
+        let center = UNUserNotificationCenter.current()
+        let previous = center.delegate.map { String(describing: type(of: $0)) } ?? "nil"
+        center.delegate = self
+        let current = center.delegate.map { String(describing: type(of: $0)) } ?? "nil"
+        print("ApproveHQ notification delegate [\(reason)]: previous=\(previous) current=\(current)")
     }
 
     private func registerForPushIfAuthorized(_ application: UIApplication) {
