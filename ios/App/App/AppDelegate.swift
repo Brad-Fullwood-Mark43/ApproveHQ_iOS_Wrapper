@@ -136,6 +136,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     var window: UIWindow?
     private let pushTokenKey = "ApproveHQPushDeviceToken"
     private let pushPathKey = "ApproveHQPendingPushPath"
+    private var localDiagnosticScheduled = false
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         installNotificationDelegate(reason: "didFinishLaunching")
@@ -144,11 +145,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Reassert delegate ownership after the Capacitor bridge and scene are active.
-        // This makes foreground notification handling deterministic even if another
-        // framework temporarily replaces UNUserNotificationCenter.current().delegate.
         installNotificationDelegate(reason: "applicationDidBecomeActive")
         registerForPushIfAuthorized(application)
+        scheduleLocalNotificationDiagnosticOnce()
     }
 
     private func installNotificationDelegate(reason: String) {
@@ -175,6 +174,34 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         }
     }
 
+    private func scheduleLocalNotificationDiagnosticOnce() {
+        #if DEBUG
+        guard !localDiagnosticScheduled else { return }
+        localDiagnosticScheduled = true
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
+                print("ApproveHQ local notification diagnostic skipped: authorization=\(settings.authorizationStatus.rawValue)")
+                return
+            }
+            let content = UNMutableNotificationContent()
+            content.title = "ApproveHQ local test"
+            content.body = "If you see this, iOS notification presentation is working."
+            content.sound = .default
+            content.userInfo = ["diagnostic": "local"]
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
+            let request = UNNotificationRequest(identifier: "approvehq-local-diagnostic", content: content, trigger: trigger)
+            center.add(request) { error in
+                if let error = error {
+                    print("ApproveHQ local notification diagnostic scheduling failed: \(error.localizedDescription)")
+                } else {
+                    print("ApproveHQ local notification diagnostic scheduled for 3 seconds")
+                }
+            }
+        }
+        #endif
+    }
+
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         let token = deviceToken.map { String(format: "%02x", $0) }.joined()
         UserDefaults.standard.set(token, forKey: pushTokenKey)
@@ -186,7 +213,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        print("ApproveHQ remote notification received while foreground: \(notification.request.content.userInfo)")
+        print("ApproveHQ notification received while foreground: \(notification.request.content.userInfo)")
         completionHandler([.banner, .list, .sound, .badge])
     }
 
