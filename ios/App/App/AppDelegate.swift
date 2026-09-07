@@ -9,7 +9,8 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "get", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "set", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "remove", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "remove", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openURL", returnType: CAPPluginReturnPromise)
     ]
 
     private let service = "com.fourfenterprises.approvehq.session"
@@ -81,6 +82,24 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
             call.resolve()
         } else {
             call.reject("Could not remove secure session.")
+        }
+    }
+
+    @objc func openURL(_ call: CAPPluginCall) {
+        guard let raw = call.getString("url"),
+              let url = URL(string: raw),
+              url.scheme?.lowercased() == "https" else {
+            call.reject("Only secure HTTPS links can be opened.")
+            return
+        }
+        DispatchQueue.main.async {
+            UIApplication.shared.open(url, options: [:]) { success in
+                if success {
+                    call.resolve()
+                } else {
+                    call.reject("Could not open link.")
+                }
+            }
         }
     }
 }
