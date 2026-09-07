@@ -14,6 +14,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 
+    func sceneDidBecomeActive(_ scene: UIScene) {
+        print("ApproveHQ sceneDidBecomeActive")
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            appDelegate.handleAppBecameActive(UIApplication.shared, reason: "sceneDidBecomeActive")
+        } else {
+            print("ApproveHQ sceneDidBecomeActive: AppDelegate unavailable")
+        }
+    }
+
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
         SceneDelegateProxy.shared.scene(scene, openURLContexts: URLContexts)
     }
