@@ -72,6 +72,80 @@
     bottomNav.classList.remove('hidden');
   }
 
+  async function registerPush() {
+    if (!mobileToken) return;
+    const plugin = await waitForSecure();
+    if (!plugin?.requestPushPermission || !plugin?.getPushToken) return;
+    try {
+      const permission = await plugin.requestPushPermission({});
+      if (!permission?.granted) return;
+
+      let nativeToken = null;
+      for (let i = 0; i < 12; i += 1) {
+        const result = await plugin.getPushToken({});
+        if (result?.deviceToken) {
+          nativeToken = result;
+          break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+      if (!nativeToken?.deviceToken) return;
+
+      const response = await post('/api/mobile/push/register', {
+        deviceToken: nativeToken.deviceToken,
+        environment: nativeToken.environment || 'production'
+      });
+      if (!response.response.ok) {
+        console.error('Could not register native push token', response.data?.error || response.response.status);
+      }
+    } catch (err) {
+      console.error('Native push setup failed', err);
+    }
+  }
+
+  async function unregisterPush() {
+    if (!mobileToken) return;
+    const plugin = await waitForSecure();
+    if (!plugin?.getPushToken) return;
+    try {
+      const result = await plugin.getPushToken({});
+      if (!result?.deviceToken) return;
+      await req('/api/mobile/push/register', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceToken: result.deviceToken })
+      });
+    } catch (err) {
+      console.error('Could not unregister native push token', err);
+    }
+  }
+
+  async function handlePushPath(path) {
+    if (!path || !mobileToken || !currentUser || mainView.classList.contains('hidden')) return;
+    const match = String(path).match(/^\/jobs\/(\d+)(?:\/?|$)/);
+    if (match) {
+      await openJob(Number(match[1]));
+      return;
+    }
+    if (String(path).startsWith('/jobs')) await selectTab('jobs', true);
+  }
+
+  async function consumePendingPush() {
+    const plugin = await waitForSecure();
+    if (!plugin?.getPendingPushPath) return;
+    try {
+      const result = await plugin.getPendingPushPath({});
+      if (result?.path) await handlePushPath(result.path);
+    } catch (err) {
+      console.error('Could not open push destination', err);
+    }
+  }
+
+  async function afterAuthenticated() {
+    registerPush();
+    consumePendingPush();
+  }
+
   async function expireSession(message) {
     mobileToken = null;
     currentUser = null;
@@ -101,6 +175,10 @@
   window.addEventListener('online', () => {
     showBanner('');
     if (!mainView.classList.contains('hidden') && currentJobId) loadJob(currentJobId);
+  });
+  window.addEventListener('focus', () => consumePendingPush());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') consumePendingPush();
   });
 
   document.addEventListener('click', async event => {
@@ -149,6 +227,7 @@
 
       const me = await get('/api/mobile/auth/me');
       if (me.response.ok && me.data.user) applyUser(me.data.user);
+      afterAuthenticated();
     } catch (err) {
       showLoginError(err?.message || 'Could not reach ApproveHQ.');
     } finally {
@@ -158,6 +237,7 @@
   }, true);
 
   document.getElementById('signOut').addEventListener('click', () => {
+    unregisterPush();
     clearToken();
   });
 
@@ -190,7 +270,8 @@
       }
       applyUser(me.data.user);
       revealApp();
-      selectTab('jobs', true).catch(err => showBanner(err?.message || 'Could not load jobs.'));
+      await selectTab('jobs', true).catch(err => showBanner(err?.message || 'Could not load jobs.'));
+      afterAuthenticated();
     } catch (err) {
       showBanner(err?.message || 'Could not restore your session yet.');
     } finally {
