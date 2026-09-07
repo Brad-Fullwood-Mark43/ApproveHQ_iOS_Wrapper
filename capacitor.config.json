@@ -1,0 +1,9 @@
+{
+  "appId": "com.fourfenterprises.approvehq",
+  "appName": "ApproveHQ",
+  "webDir": "www",
+  "server": {
+    "url": "https://www.4fenterprises.org/login",
+    "cleartext": false
+  }
+}

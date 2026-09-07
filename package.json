@@ -1,0 +1,25 @@
+{
+  "name": "approvehq_ios_wrapper",
+  "version": "1.0.0",
+  "description": "Native iOS wrapper for the ApproveHQ web application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Brad-Fullwood-Mark43/ApproveHQ_iOS_Wrapper.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Brad-Fullwood-Mark43/ApproveHQ_iOS_Wrapper/issues"
+  },
+  "homepage": "https://github.com/Brad-Fullwood-Mark43/ApproveHQ_iOS_Wrapper#readme",
+  "dependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "@capacitor/core": "^8.5.1",
+    "@capacitor/ios": "^8.5.1"
+  }
+}
