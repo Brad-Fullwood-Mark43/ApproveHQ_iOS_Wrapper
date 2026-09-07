@@ -2,6 +2,7 @@ import UIKit
 import Capacitor
 import Security
 import LocalAuthentication
+import UserNotifications
 
 @objc(SecureSessionPlugin)
 public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
@@ -12,11 +13,16 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "set", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "remove", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "authenticate", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "openURL", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "openURL", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestPushPermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPushToken", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getPendingPushPath", returnType: CAPPluginReturnPromise)
     ]
 
     private let service = "com.fourfenterprises.approvehq.session"
     private let account = "mobileToken"
+    private let pushTokenKey = "ApproveHQPushDeviceToken"
+    private let pushPathKey = "ApproveHQPendingPushPath"
 
     private func baseQuery() -> [String: Any] {
         [
@@ -93,10 +99,7 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         var error: NSError?
 
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-            call.resolve([
-                "available": false,
-                "authenticated": false
-            ])
+            call.resolve(["available": false, "authenticated": false])
             return
         }
 
@@ -104,10 +107,7 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { success, authError in
             DispatchQueue.main.async {
                 if success {
-                    call.resolve([
-                        "available": true,
-                        "authenticated": true
-                    ])
+                    call.resolve(["available": true, "authenticated": true])
                 } else {
                     let nsError = authError as NSError?
                     call.resolve([
@@ -129,12 +129,49 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         }
         DispatchQueue.main.async {
             UIApplication.shared.open(url, options: [:]) { success in
-                if success {
-                    call.resolve()
-                } else {
-                    call.reject("Could not open link.")
+                if success { call.resolve() }
+                else { call.reject("Could not open link.") }
+            }
+        }
+    }
+
+    @objc func requestPushPermission(_ call: CAPPluginCall) {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+            if let error = error {
+                call.reject("Could not request notification permission: \(error.localizedDescription)")
+                return
+            }
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
                 }
             }
+            call.resolve(["granted": granted])
+        }
+    }
+
+    @objc func getPushToken(_ call: CAPPluginCall) {
+        let token = UserDefaults.standard.string(forKey: pushTokenKey)
+        #if DEBUG
+        let environment = "sandbox"
+        #else
+        let environment = "production"
+        #endif
+        if let token = token, !token.isEmpty {
+            call.resolve(["deviceToken": token, "environment": environment])
+        } else {
+            call.resolve(["environment": environment])
+        }
+    }
+
+    @objc func getPendingPushPath(_ call: CAPPluginCall) {
+        let defaults = UserDefaults.standard
+        let path = defaults.string(forKey: pushPathKey)
+        defaults.removeObject(forKey: pushPathKey)
+        if let path = path, !path.isEmpty {
+            call.resolve(["path": path])
+        } else {
+            call.resolve([:])
         }
     }
 }
@@ -146,11 +183,39 @@ class ApproveHQBridgeViewController: CAPBridgeViewController {
 }
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     var window: UIWindow?
+    private let pushTokenKey = "ApproveHQPushDeviceToken"
+    private let pushPathKey = "ApproveHQPendingPushPath"
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
         return true
+    }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        UserDefaults.standard.set(token, forKey: pushTokenKey)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("ApproveHQ APNs registration failed: \(error.localizedDescription)")
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        let userInfo = response.notification.request.content.userInfo
+        if let path = userInfo["path"] as? String, !path.isEmpty {
+            UserDefaults.standard.set(path, forKey: pushPathKey)
+        }
+        completionHandler()
     }
 
     func application(_ application: UIApplication,
