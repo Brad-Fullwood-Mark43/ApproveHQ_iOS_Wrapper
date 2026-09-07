@@ -32,7 +32,7 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound {
-            call.resolve(["value": NSNull()])
+            call.resolve([:])
             return
         }
         guard status == errSecSuccess,
