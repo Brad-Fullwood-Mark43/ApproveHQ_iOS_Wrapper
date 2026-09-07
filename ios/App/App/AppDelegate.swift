@@ -88,7 +88,11 @@ public class SecureSessionPlugin: CAPPlugin, CAPBridgedPlugin {
     @objc func requestPushPermission(_ call: CAPPluginCall) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             if let error = error { call.reject("Could not request notification permission: \(error.localizedDescription)"); return }
-            if granted { DispatchQueue.main.async { UIApplication.shared.registerForRemoteNotifications() } }
+            if granted {
+                DispatchQueue.main.async {
+                    UIApplication.shared.registerForRemoteNotifications()
+                }
+            }
             call.resolve(["granted": granted])
         }
     }
@@ -129,11 +133,61 @@ class ApproveHQBridgeViewController: CAPBridgeViewController {
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-    var window: UIWindow?; private let pushTokenKey = "ApproveHQPushDeviceToken"; private let pushPathKey = "ApproveHQPendingPushPath"
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool { UNUserNotificationCenter.current().delegate = self; return true }
-    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) { UserDefaults.standard.set(deviceToken.map { String(format: "%02x", $0) }.joined(), forKey: pushTokenKey) }
-    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) { print("ApproveHQ APNs registration failed: \(error.localizedDescription)") }
-    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .sound, .badge]) }
-    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) { if let path = response.notification.request.content.userInfo["path"] as? String, !path.isEmpty { UserDefaults.standard.set(path, forKey: pushPathKey) }; completionHandler() }
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration { let config = UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role); config.delegateClass = SceneDelegate.self; return config }
+    var window: UIWindow?
+    private let pushTokenKey = "ApproveHQPushDeviceToken"
+    private let pushPathKey = "ApproveHQPendingPushPath"
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        registerForPushIfAuthorized(application)
+        return true
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // Re-register whenever the app becomes active. APNs device tokens can change,
+        // and this also recovers cleanly after the user changes notification settings.
+        registerForPushIfAuthorized(application)
+    }
+
+    private func registerForPushIfAuthorized(_ application: UIApplication) {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .authorized, .provisional, .ephemeral:
+                DispatchQueue.main.async {
+                    application.registerForRemoteNotifications()
+                }
+            case .denied, .notDetermined:
+                break
+            @unknown default:
+                break
+            }
+        }
+    }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        UserDefaults.standard.set(token, forKey: pushTokenKey)
+        print("ApproveHQ APNs registration succeeded: token available")
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("ApproveHQ APNs registration failed: \(error.localizedDescription)")
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        if let path = response.notification.request.content.userInfo["path"] as? String, !path.isEmpty {
+            UserDefaults.standard.set(path, forKey: pushPathKey)
+        }
+        completionHandler()
+    }
+
+    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+        let config = UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+        config.delegateClass = SceneDelegate.self
+        return config
+    }
 }
