@@ -1,6 +1,8 @@
 'use strict';
 (function () {
   const $ = id => document.getElementById(id);
+  let enhancingPayments = false;
+  let enhancingJobPayments = false;
 
   function removeNativeFeatureCopies() {
     const operationalScreens = [
@@ -124,15 +126,128 @@
     });
   }
 
-  const observer = new MutationObserver(() => {
-    removeNativeFeatureCopies();
-    ensureArchiveControl();
-    ensureTeamControls();
-  });
+  async function markCash(paymentId, button, refresh) {
+    if (!window.confirm('Mark this payment as paid in cash?')) return;
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Recording…';
+    try {
+      const result = await post('/api/mobile/payments', { action: 'mark_cash', paymentId });
+      if (!result.response.ok) throw new Error(result.data?.error || 'Could not mark payment paid in cash.');
+      loaded.payments = false;
+      await refresh();
+    } catch (err) {
+      showBanner(err?.message || 'Could not mark payment paid in cash.');
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
+  async function enhancePaymentDashboard() {
+    const root = $('paymentsContent');
+    if (!root || root.closest('.hidden') || enhancingPayments) return;
+    const rendered = Array.from(root.querySelectorAll('.payment-row'));
+    if (!rendered.length) return;
+    enhancingPayments = true;
+    try {
+      const suffix = typeof paymentQuery === 'function' ? paymentQuery() : '';
+      const result = await get('/api/mobile/payments' + suffix);
+      if (!result.response.ok) return;
+      const rows = Array.isArray(result.data?.payments) ? result.data.payments : [];
+      rendered.forEach((node, index) => {
+        const payment = rows[index];
+        if (!payment || node.dataset.cashEnhanced === String(payment.id)) return;
+        node.dataset.cashEnhanced = String(payment.id);
+        const status = String(payment.status || '').toLowerCase();
+        const meta = node.querySelector('.meta:last-of-type') || node.querySelector('.meta');
+        if (status === 'paid') {
+          if (payment.paid_method === 'cash' && meta && !meta.textContent.includes('Cash')) {
+            meta.innerHTML = meta.innerHTML.replace(/<strong>Paid<\/strong>/, '<strong>Paid · Cash</strong>');
+          } else if (payment.paid_method === 'square' && meta && !meta.textContent.includes('Square')) {
+            meta.innerHTML = meta.innerHTML.replace(/<strong>Paid<\/strong>/, '<strong>Paid · Square</strong>');
+          }
+          return;
+        }
+        if (status !== 'pending' && status !== 'failed') return;
+        const button = document.createElement('button');
+        button.className = 'action-btn secondary';
+        button.type = 'button';
+        button.style.width = '100%';
+        button.style.marginTop = '10px';
+        button.textContent = 'Paid Cash';
+        button.addEventListener('click', () => markCash(payment.id, button, async () => {
+          loaded.payments = false;
+          await loadPayments();
+        }));
+        node.appendChild(button);
+      });
+    } catch (err) {
+      console.error('Could not enhance payment dashboard for cash payments', err);
+    } finally {
+      enhancingPayments = false;
+    }
+  }
+
+  async function enhanceJobPayments() {
+    const root = $('jobPayments');
+    if (!root || !currentJobId || enhancingJobPayments) return;
+    const rendered = Array.from(root.querySelectorAll('.payment-row'));
+    if (!rendered.length) return;
+    enhancingJobPayments = true;
+    try {
+      const jobId = currentJobId;
+      const result = await get('/api/mobile/jobs/' + jobId + '/payment-requests');
+      if (!result.response.ok) return;
+      const rows = Array.isArray(result.data?.paymentRequests) ? result.data.paymentRequests : [];
+      rendered.forEach((node, index) => {
+        const payment = rows[index];
+        if (!payment || node.dataset.cashEnhanced === String(payment.id)) return;
+        node.dataset.cashEnhanced = String(payment.id);
+        const status = String(payment.status || '').toLowerCase();
+        const meta = node.querySelector('.meta');
+        const isCash = String(payment.note || '').includes('[Payment method: Cash');
+        if (status === 'paid') {
+          if (meta) meta.textContent = isCash ? 'Paid · Cash ✓' : 'Paid · Square ✓';
+          return;
+        }
+        if (status !== 'pending' && status !== 'failed') return;
+        const button = document.createElement('button');
+        button.className = 'action-btn secondary';
+        button.type = 'button';
+        button.style.width = '100%';
+        button.style.marginTop = '10px';
+        button.textContent = 'Paid Cash';
+        button.addEventListener('click', () => markCash(payment.id, button, async () => {
+          loaded.payments = false;
+          await loadJobPayments(jobId);
+        }));
+        node.appendChild(button);
+      });
+    } catch (err) {
+      console.error('Could not enhance job payments for cash payments', err);
+    } finally {
+      enhancingJobPayments = false;
+    }
+  }
+
+  let enhancementTimer = null;
+  function scheduleEnhancements() {
+    clearTimeout(enhancementTimer);
+    enhancementTimer = setTimeout(() => {
+      removeNativeFeatureCopies();
+      ensureArchiveControl();
+      ensureTeamControls();
+      enhancePaymentDashboard();
+      enhanceJobPayments();
+    }, 50);
+  }
+
+  const observer = new MutationObserver(scheduleEnhancements);
 
   document.addEventListener('DOMContentLoaded', () => {
     removeNativeFeatureCopies();
     ensureTeamControls();
     observer.observe(document.body, { childList: true, subtree: true });
+    scheduleEnhancements();
   });
 })();
