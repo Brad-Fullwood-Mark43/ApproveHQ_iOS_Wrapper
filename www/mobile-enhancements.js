@@ -44,6 +44,43 @@
     });
   }
 
+  async function copyText(text, button) {
+    if (!text) return;
+    const original = button?.textContent || 'Copy';
+    try {
+      await navigator.clipboard.writeText(text);
+      if (button) {
+        button.textContent = 'Copied ✓';
+        setTimeout(() => { button.textContent = original; }, 1800);
+      }
+    } catch {
+      window.prompt('Copy this link:', text);
+    }
+  }
+
+  function inviteResultHtml(data) {
+    const inviteUrl = data?.inviteUrl || '';
+    const appUrl = data?.appDownloadUrl || '';
+    const needsSetup = Boolean(data?.needsPassphraseSetup);
+    const sent = Boolean(data?.inviteSent);
+    const sendError = data?.inviteError || '';
+    let message;
+    if (sent && needsSetup) message = 'Team member added · Invitation text sent ✓';
+    else if (sent) message = 'Team member added · App link sent ✓';
+    else if (needsSetup) message = `Team member added ✓<br><span class="meta">Invitation text was not sent${sendError ? ': ' + sendError : '.'}</span>`;
+    else message = `Team member added ✓<br><span class="meta">They already have an ApproveHQ account and can use their existing passphrase.</span>`;
+
+    const actions = [];
+    if (inviteUrl) {
+      actions.push(`<a class="action-btn secondary" href="${inviteUrl}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;text-decoration:none">Open Setup Link</a>`);
+      actions.push(`<button id="copyTeamInviteBtn" class="action-btn secondary" type="button" style="width:100%;margin-top:8px">Copy Setup Link</button>`);
+    }
+    if (appUrl) {
+      actions.push(`<a class="action-btn secondary" href="${appUrl}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:8px;text-decoration:none">Open App Download</a>`);
+    }
+    return message + actions.join('');
+  }
+
   function ensureTeamControls() {
     const screen = $('teamScreen');
     if (!screen || $('addTeamMemberBtn')) return;
@@ -55,7 +92,32 @@
     card.innerHTML = `<div class="section-title">Add team member</div><form id="addTeamMemberForm"><div class="field"><label for="teamMemberName">Name</label><input id="teamMemberName" type="text" maxlength="200"></div><div class="field"><label for="teamMemberPhone">Mobile phone</label><input id="teamMemberPhone" type="tel" inputmode="tel" required></div><div class="field"><label for="teamMemberRole">Role</label><select id="teamMemberRole"><option value="admin">Admin</option><option value="owner">Owner</option></select></div><button id="saveTeamMemberBtn" class="action-btn" type="submit" style="width:100%">Add team member</button><div id="addTeamMemberStatus" class="form-status"></div></form>`;
     const message = $('teamMessage'); if (message) screen.insertBefore(card, message); else topbar.insertAdjacentElement('afterend', card);
     add.addEventListener('click', () => card.classList.toggle('hidden'));
-    $('addTeamMemberForm').addEventListener('submit', async event => { event.preventDefault(); const button = $('saveTeamMemberBtn'); const status = $('addTeamMemberStatus'); button.disabled = true; status.textContent = 'Adding team member…'; try { const result = await post('/api/mobile/team', { name: $('teamMemberName').value.trim(), phone: $('teamMemberPhone').value.trim(), role: $('teamMemberRole').value }); if (!result.response.ok) throw new Error(result.data?.error || 'Could not add team member.'); loaded.team = false; const invite = result.data?.inviteUrl; status.innerHTML = invite ? `Team member added ✓<br><a class="text-button" href="${invite}" target="_blank" rel="noopener">Open setup invitation</a>` : 'Team member added ✓ Existing account can sign in immediately.'; $('teamMemberName').value = ''; $('teamMemberPhone').value = ''; await loadTeam(); } catch (err) { status.textContent = err?.message || 'Could not add team member.'; } finally { button.disabled = false; } });
+    $('addTeamMemberForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = $('saveTeamMemberBtn');
+      const status = $('addTeamMemberStatus');
+      button.disabled = true;
+      status.textContent = 'Adding team member and sending invitation…';
+      try {
+        const result = await post('/api/mobile/team', {
+          name: $('teamMemberName').value.trim(),
+          phone: $('teamMemberPhone').value.trim(),
+          role: $('teamMemberRole').value
+        });
+        if (!result.response.ok) throw new Error(result.data?.error || 'Could not add team member.');
+        loaded.team = false;
+        status.innerHTML = inviteResultHtml(result.data);
+        const copy = $('copyTeamInviteBtn');
+        if (copy && result.data?.inviteUrl) copy.addEventListener('click', () => copyText(result.data.inviteUrl, copy));
+        $('teamMemberName').value = '';
+        $('teamMemberPhone').value = '';
+        await loadTeam();
+      } catch (err) {
+        status.textContent = err?.message || 'Could not add team member.';
+      } finally {
+        button.disabled = false;
+      }
+    });
   }
 
   async function markCash(paymentId, button, refresh) { if (!window.confirm('Mark this payment as paid in cash?')) return; const original = button.textContent; button.disabled = true; button.textContent = 'Recording…'; try { const result = await post('/api/mobile/payments', { action: 'mark_cash', paymentId }); if (!result.response.ok) throw new Error(result.data?.error || 'Could not mark payment paid in cash.'); loaded.payments = false; await refresh(); } catch (err) { showBanner(err?.message || 'Could not mark payment paid in cash.'); button.disabled = false; button.textContent = original; } }
