@@ -45,7 +45,7 @@
   function renderMemberships() {
     const root = $('businessSwitchList');
     if (!memberships.length) {
-      root.innerHTML = '<div class="meta">No additional businesses are available for this account.</div>';
+      root.innerHTML = '<div class="meta">No businesses were returned for this account in the current environment.</div>';
       return;
     }
     root.innerHTML = memberships.map(m => {
@@ -79,8 +79,11 @@
     memberships = Array.isArray(x.data.memberships) ? x.data.memberships : [];
     currentBusinessId = Number(x.data.currentBusinessId || window.currentUser?.businessId || 0) || null;
     setCurrentLabel();
-    switchBar.classList.toggle('hidden', memberships.length < 2);
+    switchBar.classList.remove('hidden');
     renderMemberships();
+    if (memberships.length === 1) {
+      status.textContent = 'Only one business is linked to this phone in the current environment.';
+    }
   }
 
   async function openSwitcher() {
@@ -144,7 +147,7 @@
     try {
       const x = await post('/api/mobile/auth/login', { phone, probe: true });
       const rows = Array.isArray(x.data?.memberships) ? x.data.memberships : [];
-      if (x.response.ok && rows.length > 1) {
+      if (x.response.ok && rows.length >= 1) {
         businessSelect.innerHTML = rows.map(m => `<option value="${Number(m.businessId)}">${esc(m.businessName)}</option>`).join('');
         let hint = $('businessLoginHint');
         if (!hint) {
@@ -154,7 +157,9 @@
           hint.style.marginTop = '6px';
           businessField.appendChild(hint);
         }
-        hint.textContent = 'This phone has access to multiple businesses. Choose one to continue.';
+        hint.textContent = rows.length > 1
+          ? 'This phone has access to multiple businesses. Choose one to continue.'
+          : 'Only one business is linked to this phone in the current environment.';
         businessField.classList.remove('hidden');
       } else {
         businessField.classList.add('hidden');
