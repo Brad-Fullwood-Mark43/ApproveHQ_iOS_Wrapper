@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Brad-Fullwood-Mark43/ApproveHQ_iOS_Wrapper#readme",
   "dependencies": {
+    "@capacitor/browser": "^8.0.0",
     "@capacitor/cli": "^8.5.1",
     "@capacitor/core": "^8.5.1",
     "@capacitor/ios": "^8.5.1"
