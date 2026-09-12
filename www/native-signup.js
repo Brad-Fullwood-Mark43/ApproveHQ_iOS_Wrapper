@@ -216,4 +216,11 @@
       submit.textContent = 'Create Business';
     }
   });
+
+  if (!document.querySelector('script[data-approvehq-password-reset]')) {
+    const script = document.createElement('script');
+    script.src = 'forgot-password.js';
+    script.dataset.approvehqPasswordReset = 'true';
+    document.body.appendChild(script);
+  }
 })();
