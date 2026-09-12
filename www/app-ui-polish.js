@@ -18,6 +18,10 @@
     failed: { label: 'Failed', cls: 'status-red', icon: '!' }
   };
 
+  function safe(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  }
+
   function normalizeStatus(text) {
     return String(text || '').trim().toLowerCase().replace(/\s+/g, '_');
   }
@@ -28,7 +32,7 @@
   }
 
   function statusMarkup(config) {
-    return `<span class="status-icon">${config.icon}</span><span>${config.label}</span>`;
+    return `<span class="status-icon">${safe(config.icon)}</span><span>${safe(config.label)}</span>`;
   }
 
   function ensureJobFilters() {
@@ -42,7 +46,8 @@
       <button class="status-filter active" type="button" data-job-filter="all">All</button>
       <button class="status-filter" type="button" data-job-filter="draft">In Progress</button>
       <button class="status-filter" type="button" data-job-filter="sent">Waiting</button>
-      <button class="status-filter" type="button" data-job-filter="approved">Completed</button>`;
+      <button class="status-filter" type="button" data-job-filter="approved">Completed</button>
+      <button class="status-filter" type="button" data-job-filter="changes_requested">Changes</button>`;
     message.parentNode.insertBefore(bar, message);
     bar.addEventListener('click', event => {
       const button = event.target.closest('[data-job-filter]');
@@ -123,24 +128,33 @@
     });
   }
 
+  function detectPaymentStatus(row) {
+    const metaText = Array.from(row.querySelectorAll('.meta')).map(x => x.textContent.trim().toLowerCase()).join(' ');
+    if (/\bfailed\b/.test(metaText)) return 'failed';
+    if (/\bpaid\b/.test(metaText)) return 'paid';
+    if (/\bpending\b|awaiting payment/.test(metaText)) return 'pending';
+    const strongText = Array.from(row.querySelectorAll('strong')).map(x => x.textContent.trim().toLowerCase()).join(' ');
+    if (/\bfailed\b/.test(strongText)) return 'failed';
+    if (/\bpaid\b/.test(strongText)) return 'paid';
+    return 'pending';
+  }
+
   function decoratePaymentRows() {
     const root = byId('paymentsContent');
     if (!root) return;
     root.querySelectorAll('.payment-row').forEach(row => {
-      let status = row.dataset.paymentStatus;
-      if (!status) {
-        const text = row.textContent.toLowerCase();
-        status = text.includes('paid') ? 'paid' : text.includes('failed') ? 'failed' : 'pending';
-        row.dataset.paymentStatus = status;
-      }
-      if (!row.querySelector('.payment-status-badge')) {
-        const config = PAYMENT_STATUS[status] || PAYMENT_STATUS.pending;
-        const badge = document.createElement('span');
-        badge.className = `payment-status-badge status-pill ${config.cls}`;
-        badge.innerHTML = statusMarkup(config);
+      const status = detectPaymentStatus(row);
+      row.dataset.paymentStatus = status;
+      let badge = row.querySelector('.payment-status-badge');
+      const config = PAYMENT_STATUS[status] || PAYMENT_STATUS.pending;
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'payment-status-badge';
         const firstRow = row.querySelector('.row');
         if (firstRow) firstRow.appendChild(badge);
       }
+      badge.className = `payment-status-badge status-pill ${config.cls}`;
+      badge.innerHTML = statusMarkup(config);
     });
     applyPaymentFilter();
   }
@@ -199,7 +213,7 @@
   }
 
   function activityItem(icon, cls, title, detail, when) {
-    return `<div class="activity-row"><div class="activity-icon ${cls}">${icon}</div><div class="activity-copy"><strong>${title}</strong>${detail ? `<div>${detail}</div>` : ''}${when ? `<span>${when}</span>` : ''}</div></div>`;
+    return `<div class="activity-row"><div class="activity-icon ${safe(cls)}">${safe(icon)}</div><div class="activity-copy"><strong>${safe(title)}</strong>${detail ? `<div>${safe(detail)}</div>` : ''}${when ? `<span>${safe(when)}</span>` : ''}</div></div>`;
   }
 
   function renderRecentActivity(data) {
@@ -211,7 +225,7 @@
     if (card) card.remove();
     card = document.createElement('div');
     card.id = 'recentActivityCard';
-    card.className = 'detail-card';
+    card.className = 'detail-card anchor-card';
     card.innerHTML = '<div class="section-title">Recent Activity</div>';
 
     const events = [];
@@ -249,7 +263,9 @@
         const raw = normalizeStatus(a.status || a.decision || 'approved');
         const approved = raw === 'approved';
         const config = approved ? { label: 'Approved', cls: 'status-green', icon: '✓' } : { label: raw.replaceAll('_', ' '), cls: 'status-amber', icon: '!' };
-        return `<div class="approval-row"><div><strong>${String(a.customer_name || a.author_name || 'Customer')}</strong><div class="meta">${fmtDate(a.created_at || a.updated_at || a.approved_at)}</div></div><span class="status-pill ${config.cls}">${statusMarkup(config)}</span></div>`;
+        const who = safe(a.customer_name || a.author_name || 'Customer');
+        const when = safe(fmtDate(a.created_at || a.updated_at || a.approved_at));
+        return `<div class="approval-row"><div><strong>${who}</strong><div class="meta">${when}</div></div><span class="status-pill ${config.cls}">${statusMarkup(config)}</span></div>`;
       }).join('');
     }
     const comments = cardByTitle('Comments');
