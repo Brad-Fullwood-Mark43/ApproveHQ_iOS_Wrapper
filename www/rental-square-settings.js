@@ -77,20 +77,27 @@
     const button = $('connectRentalSquare');
     const action = $('rentalSquareActionStatus');
     button.disabled = true;
-    action.textContent = 'Opening Square…';
+    action.textContent = 'Preparing Square authorization…';
     try {
       const x = await post('/api/mobile/square/connect', {});
       if (!x.response.ok) throw new Error(x.data?.error || 'Could not start Square connection.');
       const url = x.data?.authorizeUrl;
+      const environment = x.data?.environment || 'unknown';
       if (!url) throw new Error('Square authorization URL was not returned.');
 
+      if (environment === 'sandbox') {
+        action.textContent = 'Opening Square Sandbox. If the page is blank or does not load, first open the Square Developer Console and launch the seller test account, then try Connect Square again.';
+      } else {
+        action.textContent = 'Opening Square Production authorization…';
+      }
+
+      console.log('ApproveHQ Square OAuth', { environment, host: new URL(url).host });
       const browser = browserPlugin();
       if (browser?.open) {
         await browser.open({ url });
       } else {
         window.location.href = url;
       }
-      action.textContent = 'Authorize Square, then return to ApproveHQ. This business will update automatically.';
     } catch (err) {
       action.textContent = err?.message || 'Could not connect Square.';
     } finally {
