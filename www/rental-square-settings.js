@@ -14,6 +14,14 @@
     return null;
   }
 
+  function appLauncherPlugin() {
+    const cap = window.Capacitor;
+    if (!cap) return null;
+    if (cap.Plugins?.AppLauncher) return cap.Plugins.AppLauncher;
+    if (typeof cap.registerPlugin === 'function') return cap.registerPlugin('AppLauncher');
+    return null;
+  }
+
   function installCard() {
     const screen = $('nativeFeaturesScreen');
     if (!screen || $('rentalSquareCard')) return;
@@ -85,18 +93,21 @@
       const environment = x.data?.environment || 'unknown';
       if (!url) throw new Error('Square authorization URL was not returned.');
 
-      if (environment === 'sandbox') {
-        action.textContent = 'Opening Square Sandbox. If the page is blank or does not load, first open the Square Developer Console and launch the seller test account, then try Connect Square again.';
-      } else {
-        action.textContent = 'Opening Square Production authorization…';
-      }
-
       console.log('ApproveHQ Square OAuth', { environment, host: new URL(url).host });
-      const browser = browserPlugin();
-      if (browser?.open) {
-        await browser.open({ url });
+
+      if (environment === 'sandbox') {
+        action.textContent = 'Opening Square Sandbox in Safari so it can use your active Square test-seller session…';
+        const launcher = appLauncherPlugin();
+        if (!launcher?.openUrl) {
+          throw new Error('Safari launcher is unavailable. Run npm install and npx cap sync ios, then rebuild the app.');
+        }
+        const launched = await launcher.openUrl({ url });
+        if (launched?.completed === false) throw new Error('iOS could not open Square Sandbox in Safari.');
       } else {
-        window.location.href = url;
+        action.textContent = 'Opening Square authorization…';
+        const browser = browserPlugin();
+        if (browser?.open) await browser.open({ url });
+        else window.location.href = url;
       }
     } catch (err) {
       action.textContent = err?.message || 'Could not connect Square.';
