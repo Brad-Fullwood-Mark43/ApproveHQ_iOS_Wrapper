@@ -203,3 +203,10 @@
     observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
   });
 })();
+
+(() => {
+  const script = document.createElement('script');
+  script.src = 'new-job-customer.js';
+  script.defer = true;
+  document.head.appendChild(script);
+})();
