@@ -7,14 +7,13 @@
   let decorating = false;
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money = cents => new Intl.NumberFormat('en-US', { style:'currency', currency:'USD' }).format(Number(cents || 0) / 100);
 
   function isRentalsScreen() {
     return root.querySelector('.topbar h2')?.textContent?.trim() === 'Rentals';
   }
 
-  function closeSharePanel() {
-    $('rentalSharePanel')?.remove();
-  }
+  function closeSharePanel() { $('rentalSharePanel')?.remove(); }
 
   async function openSharePanel() {
     if ($('rentalSharePanel')) return;
@@ -120,6 +119,107 @@
     openSharePanel();
   }, true);
 
+  function paymentStatus(row) {
+    const s = String(row.display_status || row.status || 'pending');
+    const label = s === 'paid' ? 'Paid' : s === 'sent' ? 'Sent' : s === 'failed' ? 'Failed' : s === 'cancelled' ? 'Cancelled' : 'Pending';
+    const cls = s === 'paid' ? 'status-complete' : s === 'failed' || s === 'cancelled' ? 'status-changes' : 'status-waiting';
+    return `<span class="status-pill ${cls}">${label}</span>`;
+  }
+
+  async function loadRentalPayments(rentalId, section) {
+    if (!section || section.dataset.loaded === 'true') return;
+    const body = section.querySelector('.rental-payment-body');
+    body.innerHTML = '<div class="loading">Loading payments…</div>';
+    try {
+      const x = await get(`/api/mobile/rentals/${rentalId}/payment-requests`);
+      if (!x.response.ok) {
+        if (x.response.status === 409) {
+          body.innerHTML = `<div class="meta">${esc(x.data?.error || 'Connect Square in Settings before sending rental payment requests.')}</div>`;
+          section.dataset.loaded = 'true';
+          return;
+        }
+        throw new Error(x.data?.error || 'Could not load rental payments.');
+      }
+
+      const rental = x.data?.rental || {};
+      const rows = Array.isArray(x.data?.paymentRequests) ? x.data.paymentRequests : [];
+      body.innerHTML = `
+        <div class="row" style="margin-bottom:10px"><div><div class="eyebrow">Rental total</div><strong>${money(rental.price_cents)}</strong></div></div>
+        ${rows.length ? `<div class="rental-payment-history">${rows.map(p => `<div class="rental-payment-row"><div><strong>${esc(p.description)}</strong><div class="meta">${money(p.amount_cents)}${p.sent_at ? ' · Text sent' : ''}</div></div>${paymentStatus(p)}</div>`).join('')}</div>` : '<div class="meta" style="margin-bottom:12px">No payment requests yet.</div>'}
+        ${String(rental.status) !== 'cancelled' ? `
+          <div class="field"><label>Description</label><input id="rpay-desc-${rentalId}" value="Rental deposit"></div>
+          <div class="field"><label>Amount</label><input id="rpay-amount-${rentalId}" type="number" min="0.01" step="0.01" placeholder="0.00"></div>
+          <div class="field"><label>Note (optional)</label><input id="rpay-note-${rentalId}" placeholder="Deposit due to confirm reservation"></div>
+          <button class="action-btn send-rental-payment" data-rental-payment-id="${rentalId}" type="button" style="width:100%">Send Square payment request</button>
+          <div id="rpay-status-${rentalId}" class="form-status"></div>` : ''}`;
+      section.dataset.loaded = 'true';
+    } catch (err) {
+      body.innerHTML = `<div class="form-status">${esc(err?.message || 'Could not load rental payments.')}</div>`;
+    }
+  }
+
+  async function sendRentalPayment(rentalId, button) {
+    const status = $(`rpay-status-${rentalId}`);
+    button.disabled = true;
+    status.textContent = 'Creating Square payment request…';
+    try {
+      const description = $(`rpay-desc-${rentalId}`).value.trim();
+      const amount = $(`rpay-amount-${rentalId}`).value;
+      const note = $(`rpay-note-${rentalId}`).value.trim();
+      const x = await post(`/api/mobile/rentals/${rentalId}/payment-requests`, { description, amount, note });
+      if (!x.response.ok) throw new Error(x.data?.error || 'Could not send payment request.');
+      status.textContent = x.data?.textSent ? 'Square payment request sent by text ✓' : (x.data?.textError || 'Payment request created, but text was not sent.');
+      const section = document.querySelector(`[data-rental-payment-section="${rentalId}"]`);
+      if (section) {
+        section.dataset.loaded = 'false';
+        setTimeout(() => loadRentalPayments(rentalId, section), 500);
+      }
+    } catch (err) {
+      status.textContent = err?.message || 'Could not send payment request.';
+      button.disabled = false;
+    }
+  }
+
+  async function cancelRental(rentalId, button) {
+    const card = $(`rental-${rentalId}`);
+    if (!card) return;
+    const customerName = card.querySelector('.title')?.textContent?.trim() || 'this customer';
+    if (!window.confirm(`Cancel the rental for ${customerName}? This will free these dates for another booking.`)) return;
+
+    const status = $(`rstat-${rentalId}`);
+    button.disabled = true;
+    if (status) status.textContent = 'Cancelling rental…';
+    try {
+      const x = await post('/api/mobile/rentals', {
+        action: 'update_booking',
+        rentalId,
+        deliveryDate: $(`rd-${rentalId}`)?.value,
+        pickupDate: $(`rp-${rentalId}`)?.value,
+        status: 'cancelled',
+        notes: $(`rn-${rentalId}`)?.value?.trim() || '',
+      });
+      if (!x.response.ok) throw new Error(x.data?.error || 'Could not cancel rental.');
+      $('rentalRefresh')?.click();
+    } catch (err) {
+      if (status) status.textContent = err?.message || 'Could not cancel rental.';
+      button.disabled = false;
+    }
+  }
+
+  function installRentalActions(card, rentalId, details) {
+    if (details.querySelector(`[data-rental-actions="${rentalId}"]`)) return;
+    const currentStatus = $(`rs-${rentalId}`)?.value;
+    const actions = document.createElement('div');
+    actions.dataset.rentalActions = String(rentalId);
+    actions.innerHTML = `
+      <div class="rental-payment-section" data-rental-payment-section="${rentalId}" style="margin-top:18px;padding-top:16px;border-top:1px solid rgba(128,128,128,.18)">
+        <div class="section-title">Payments</div>
+        <div class="rental-payment-body"><div class="meta">Expand this rental to load Square payment activity.</div></div>
+      </div>
+      ${currentStatus !== 'cancelled' ? `<button class="action-btn danger cancel-rental" data-cancel-rental-id="${rentalId}" type="button" style="width:100%;margin-top:16px">Cancel booking</button>` : ''}`;
+    details.appendChild(actions);
+  }
+
   function collapseCard(card) {
     if (!card || card.dataset.rentalCollapsible === 'true') return;
     const idMatch = String(card.id || '').match(/^rental-(\d+)$/);
@@ -155,6 +255,7 @@
     if (contact) details.appendChild(contact);
     if (address) details.appendChild(address);
     detailsToHide.forEach(el => details.appendChild(el));
+    installRentalActions(card, rentalId, details);
 
     card.appendChild(summary);
     card.appendChild(details);
@@ -164,6 +265,10 @@
       summary.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       summary.querySelector('.rental-card-chevron').textContent = expanded ? '⌃' : '⌄';
       card.classList.toggle('rental-card-expanded', expanded);
+      if (expanded) {
+        const paymentSection = details.querySelector(`[data-rental-payment-section="${rentalId}"]`);
+        loadRentalPayments(rentalId, paymentSection);
+      }
     };
     summary.addEventListener('click', () => setExpanded(details.classList.contains('hidden')));
 
@@ -178,6 +283,20 @@
 
     card.dataset.rentalCollapsible = 'true';
   }
+
+  root.addEventListener('click', e => {
+    const pay = e.target.closest('.send-rental-payment');
+    if (pay) {
+      e.preventDefault();
+      sendRentalPayment(Number(pay.dataset.rentalPaymentId), pay);
+      return;
+    }
+    const cancel = e.target.closest('.cancel-rental');
+    if (cancel) {
+      e.preventDefault();
+      cancelRental(Number(cancel.dataset.cancelRentalId), cancel);
+    }
+  });
 
   function decorate() {
     if (decorating || !isRentalsScreen()) return;
