@@ -1,11 +1,11 @@
 'use strict';
 (function () {
   const $ = id => document.getElementById(id);
-  const mainView = $('mainView');
   const loginPhone = $('phone');
   const businessField = $('businessField');
   const businessSelect = $('business');
-  if (!mainView || !loginPhone || !businessField || !businessSelect) return;
+  const settingsScreen = $('nativeFeaturesScreen');
+  if (!loginPhone || !businessField || !businessSelect || !settingsScreen) return;
 
   let memberships = [];
   let currentBusinessId = null;
@@ -13,47 +13,45 @@
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-  const switchBar = document.createElement('div');
-  switchBar.id = 'businessSwitchBar';
-  switchBar.className = 'business-switch-bar hidden';
-  switchBar.innerHTML = `
-    <button id="businessSwitchButton" class="business-switch-button" type="button">
-      <span><span class="business-switch-eyebrow">Business</span><strong id="businessSwitchName">ApproveHQ</strong></span>
-      <span class="business-switch-chevron">⌄</span>
-    </button>`;
-  mainView.insertBefore(switchBar, mainView.firstChild);
-
-  const sheet = document.createElement('div');
-  sheet.id = 'businessSwitchSheet';
-  sheet.className = 'business-switch-sheet hidden';
-  sheet.innerHTML = `
-    <button class="business-switch-backdrop" data-close-business-switch type="button" aria-label="Close"></button>
-    <div class="business-switch-panel">
-      <div class="row"><div><div class="eyebrow">ApproveHQ</div><div class="title">Switch business</div></div><button class="text-button" data-close-business-switch type="button">Done</button></div>
-      <p class="meta">Choose which business you want to manage. You do not need to sign out.</p>
-      <div id="businessSwitchList" class="business-switch-list"><div class="loading">Loading businesses…</div></div>
-      <div id="businessSwitchStatus" class="form-status"></div>
-    </div>`;
-  document.body.appendChild(sheet);
-
-  function setCurrentLabel() {
-    const user = window.currentUser;
-    currentBusinessId = Number(user?.businessId || 0) || null;
-    $('businessSwitchName').textContent = user?.businessName || 'ApproveHQ';
+  function installSettingsCard() {
+    if ($('businessSwitcherCard')) return;
+    const firstCard = settingsScreen.querySelector('.detail-card');
+    const card = document.createElement('div');
+    card.id = 'businessSwitcherCard';
+    card.className = 'detail-card';
+    card.innerHTML = `
+      <div class="section-title">Business</div>
+      <p class="meta">Current business</p>
+      <div id="businessSwitcherCurrent" class="title" style="margin-bottom:12px">${esc(window.currentUser?.businessName || 'ApproveHQ')}</div>
+      <div id="businessSwitcherList"><div class="meta">Loading businesses…</div></div>
+      <div id="businessSwitcherStatus" class="form-status"></div>`;
+    if (firstCard) settingsScreen.insertBefore(card, firstCard); else settingsScreen.appendChild(card);
   }
 
   function renderMemberships() {
-    const root = $('businessSwitchList');
+    installSettingsCard();
+    const root = $('businessSwitcherList');
+    const current = $('businessSwitcherCurrent');
+    if (current) current.textContent = window.currentUser?.businessName || 'ApproveHQ';
+
     if (!memberships.length) {
-      root.innerHTML = '<div class="meta">No businesses were returned for this account in the current environment.</div>';
+      root.innerHTML = '<div class="meta">No businesses are available for this account.</div>';
       return;
     }
+
+    if (memberships.length === 1) {
+      root.innerHTML = '<div class="meta">This account currently has access to one business.</div>';
+      return;
+    }
+
     root.innerHTML = memberships.map(m => {
       const active = Number(m.businessId) === Number(currentBusinessId);
       const type = m.businessType === 'dumpster_rental' ? 'Roll Off / Dumpster Rental' : 'Jobs & Customer Approvals';
-      return `<button class="business-choice ${active ? 'active' : ''}" data-business-id="${Number(m.businessId)}" type="button" ${active ? 'disabled' : ''}>
-        <span><strong>${esc(m.businessName)}</strong><span class="meta">${esc(type)}</span></span>
-        <span>${active ? 'Current ✓' : 'Switch ›'}</span>
+      return `<button class="action-btn ${active ? 'secondary' : ''}" data-switch-business-id="${Number(m.businessId)}" type="button" style="width:100%;margin-top:8px" ${active ? 'disabled' : ''}>
+        <span style="display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%">
+          <span style="text-align:left"><strong>${esc(m.businessName)}</strong><br><span class="meta">${esc(type)}</span></span>
+          <span>${active ? 'Current ✓' : 'Switch'}</span>
+        </span>
       </button>`;
     }).join('');
   }
@@ -71,35 +69,20 @@
   }
 
   async function loadMemberships() {
+    installSettingsCard();
     if (!mobileToken) return;
-    const status = $('businessSwitchStatus');
-    status.textContent = '';
+    const status = $('businessSwitcherStatus');
+    if (status) status.textContent = '';
     const x = await get('/api/mobile/auth/businesses');
     if (!x.response.ok) throw new Error(x.data?.error || 'Could not load businesses.');
     memberships = Array.isArray(x.data.memberships) ? x.data.memberships : [];
     currentBusinessId = Number(x.data.currentBusinessId || window.currentUser?.businessId || 0) || null;
-    setCurrentLabel();
-    switchBar.classList.remove('hidden');
     renderMemberships();
-    if (memberships.length === 1) {
-      status.textContent = 'Only one business is linked to this phone in the current environment.';
-    }
-  }
-
-  async function openSwitcher() {
-    sheet.classList.remove('hidden');
-    $('businessSwitchList').innerHTML = '<div class="loading">Loading businesses…</div>';
-    try { await loadMemberships(); }
-    catch (err) { $('businessSwitchList').innerHTML = `<div class="error" style="display:block">${esc(err.message || 'Could not load businesses.')}</div>`; }
-  }
-
-  function closeSwitcher() {
-    sheet.classList.add('hidden');
   }
 
   async function switchBusiness(businessId, button) {
-    const status = $('businessSwitchStatus');
-    status.textContent = 'Switching business…';
+    const status = $('businessSwitcherStatus');
+    if (status) status.textContent = 'Switching business…';
     button.disabled = true;
     try {
       const x = await post('/api/mobile/auth/businesses', { businessId, deviceName: 'ApproveHQ iOS' });
@@ -119,22 +102,31 @@
       const owner = me.data.user.role === 'owner' || me.data.user.isMaster === true;
       $('paymentsTab')?.classList.toggle('hidden', !owner);
       $('teamTab')?.classList.toggle('hidden', !owner);
-      setCurrentLabel();
-      closeSwitcher();
-      showBanner('');
+
+      if (status) status.textContent = 'Business switched ✓';
+      await loadMemberships();
       await window.selectTab('jobs', true);
-      loadMemberships().catch(() => {});
     } catch (err) {
-      status.textContent = err.message || 'Could not switch business.';
+      if (status) status.textContent = err.message || 'Could not switch business.';
       button.disabled = false;
     }
   }
 
-  $('businessSwitchButton').addEventListener('click', openSwitcher);
-  sheet.addEventListener('click', e => {
-    if (e.target.closest('[data-close-business-switch]')) closeSwitcher();
-    const button = e.target.closest('[data-business-id]');
-    if (button) switchBusiness(Number(button.dataset.businessId), button);
+  settingsScreen.addEventListener('click', e => {
+    const button = e.target.closest('[data-switch-business-id]');
+    if (button) switchBusiness(Number(button.dataset.switchBusinessId), button);
+  });
+
+  $('nativeFeaturesBtn')?.addEventListener('click', () => {
+    setTimeout(() => loadMemberships().catch(err => {
+      installSettingsCard();
+      const root = $('businessSwitcherList');
+      if (root) root.innerHTML = `<div class="error" style="display:block">${esc(err.message || 'Could not load businesses.')}</div>`;
+    }), 0);
+  });
+
+  $('refreshNativeFeatures')?.addEventListener('click', () => {
+    loadMemberships().catch(() => {});
   });
 
   async function probeLoginBusinesses() {
@@ -147,7 +139,7 @@
     try {
       const x = await post('/api/mobile/auth/login', { phone, probe: true });
       const rows = Array.isArray(x.data?.memberships) ? x.data.memberships : [];
-      if (x.response.ok && rows.length >= 1) {
+      if (x.response.ok && rows.length > 1) {
         businessSelect.innerHTML = rows.map(m => `<option value="${Number(m.businessId)}">${esc(m.businessName)}</option>`).join('');
         let hint = $('businessLoginHint');
         if (!hint) {
@@ -157,9 +149,7 @@
           hint.style.marginTop = '6px';
           businessField.appendChild(hint);
         }
-        hint.textContent = rows.length > 1
-          ? 'This phone has access to multiple businesses. Choose one to continue.'
-          : 'Only one business is linked to this phone in the current environment.';
+        hint.textContent = 'Choose which business to open.';
         businessField.classList.remove('hidden');
       } else {
         businessField.classList.add('hidden');
@@ -173,11 +163,5 @@
   });
   loginPhone.addEventListener('blur', probeLoginBusinesses);
 
-  const observer = new MutationObserver(() => {
-    if (!mainView.classList.contains('hidden') && mobileToken && window.currentUser) {
-      setCurrentLabel();
-      loadMemberships().catch(() => {});
-    }
-  });
-  observer.observe(mainView, { attributes: true, attributeFilter: ['class'] });
+  installSettingsCard();
 })();
