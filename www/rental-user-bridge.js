@@ -12,10 +12,3 @@ try {
     get() { return typeof currentUser === 'undefined' ? null : currentUser; }
   });
 } catch {}
-
-if (!document.querySelector('script[data-approvehq-business-switcher]')) {
-  const script = document.createElement('script');
-  script.src = 'business-switcher.js';
-  script.dataset.approvehqBusinessSwitcher = 'true';
-  document.body.appendChild(script);
-}
