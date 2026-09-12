@@ -108,9 +108,17 @@
     button.type = 'button';
     button.className = 'text-button';
     button.textContent = 'Send Link';
-    button.addEventListener('click', openSharePanel);
     actions.insertBefore(button, actions.firstChild);
   }
+
+  root.addEventListener('click', e => {
+    const button = e.target.closest('#shareRentalBookingLink');
+    if (!button) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    openSharePanel();
+  }, true);
 
   function collapseCard(card) {
     if (!card || card.dataset.rentalCollapsible === 'true') return;
