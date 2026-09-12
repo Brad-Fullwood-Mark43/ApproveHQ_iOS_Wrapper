@@ -6,6 +6,14 @@
     return window.currentUser?.businessType === 'dumpster_rental' && (window.currentUser?.role === 'owner' || window.currentUser?.isMaster);
   }
 
+  function browserPlugin() {
+    const cap = window.Capacitor;
+    if (!cap) return null;
+    if (cap.Plugins?.Browser) return cap.Plugins.Browser;
+    if (typeof cap.registerPlugin === 'function') return cap.registerPlugin('Browser');
+    return null;
+  }
+
   function installCard() {
     const screen = $('nativeFeaturesScreen');
     if (!screen || $('rentalSquareCard')) return;
@@ -55,8 +63,8 @@
       status.textContent = 'Square is connected ✓';
       button.textContent = 'Reconnect Square';
       const rows = [];
-      if (c.location_name) rows.push(`<div><strong>Location:</strong> ${String(c.location_name)}</div>`);
-      if (c.merchant_id) rows.push(`<div><strong>Merchant:</strong> ${String(c.merchant_id)}</div>`);
+      if (c.locationName) rows.push(`<div><strong>Location:</strong> ${String(c.locationName)}</div>`);
+      if (c.merchantId) rows.push(`<div><strong>Merchant:</strong> ${String(c.merchantId)}</div>`);
       if (c.environment) rows.push(`<div><strong>Environment:</strong> ${String(c.environment)}</div>`);
       details.innerHTML = rows.join('');
       details.classList.remove('hidden');
@@ -75,9 +83,14 @@
       if (!x.response.ok) throw new Error(x.data?.error || 'Could not start Square connection.');
       const url = x.data?.authorizeUrl;
       if (!url) throw new Error('Square authorization URL was not returned.');
-      const opened = window.open(url, '_blank');
-      if (!opened) window.location.href = url;
-      action.textContent = 'Complete the Square connection, then return here and tap Refresh.';
+
+      const browser = browserPlugin();
+      if (browser?.open) {
+        await browser.open({ url });
+      } else {
+        window.location.href = url;
+      }
+      action.textContent = 'Authorize Square, then return to ApproveHQ. This business will update automatically.';
     } catch (err) {
       action.textContent = err?.message || 'Could not connect Square.';
     } finally {
