@@ -17,19 +17,21 @@
         <div class="section-title" style="margin:0">Team member</div>
         <button id="closeTeamMemberDetail" class="text-button" type="button">Close</button>
       </div>
-      <div class="field"><label for="editTeamMemberName">Name</label><input id="editTeamMemberName" type="text" maxlength="200"></div>
-      <div class="field"><label for="editTeamMemberPhone">Mobile phone</label><input id="editTeamMemberPhone" type="tel" readonly></div>
-      <p class="meta" style="margin-top:-4px">Phone is the member's ApproveHQ sign-in ID and cannot be changed here.</p>
+      <div class="field"><label for="editTeamMemberName">Name</label><input id="editTeamMemberName" type="text" maxlength="200" autocomplete="name"></div>
+      <div class="field"><label for="editTeamMemberPhone">Mobile phone</label><input id="editTeamMemberPhone" type="tel" autocomplete="tel"></div>
+      <p class="meta" style="margin-top:-4px">This phone number is the member's ApproveHQ sign-in ID.</p>
       <div class="field"><label for="editTeamMemberRole">Role</label><select id="editTeamMemberRole"><option value="admin">Admin</option><option value="owner">Owner</option></select></div>
       <div id="teamMemberSetupState" class="meta"></div>
       <button id="saveTeamMemberChanges" class="action-btn" type="button" style="width:100%;margin-top:12px">Save changes</button>
-      <button id="resendTeamMemberInvite" class="action-btn secondary hidden" type="button" style="width:100%;margin-top:10px">Resend invitation</button>
+      <button id="resetTeamMemberPassword" class="action-btn secondary" type="button" style="width:100%;margin-top:10px">Reset password</button>
+      <button id="resendTeamMemberInvite" class="action-btn secondary hidden" type="button" style="width:100%;margin-top:10px">Resend setup invitation</button>
       <div id="teamMemberInviteLinks" class="action-grid hidden" style="margin-top:10px"></div>
       <div id="teamMemberDetailStatus" class="form-status"></div>`;
     const message = $('teamMessage');
     if (message) screen.insertBefore(card, message); else screen.appendChild(card);
     $('closeTeamMemberDetail').addEventListener('click', closeDetail);
     $('saveTeamMemberChanges').addEventListener('click', saveMember);
+    $('resetTeamMemberPassword').addEventListener('click', resetPassword);
     $('resendTeamMemberInvite').addEventListener('click', resendInvite);
   }
 
@@ -48,12 +50,14 @@
     $('editTeamMemberPhone').value = member.phone || '';
     $('editTeamMemberRole').value = member.role === 'owner' ? 'owner' : 'admin';
     $('teamMemberSetupState').textContent = member.pending ? 'Account setup: Pending' : 'Account setup: Complete ✓';
+    $('resetTeamMemberPassword').textContent = member.pending ? 'Set up / reset password' : 'Reset password';
     $('resendTeamMemberInvite').classList.toggle('hidden', !member.pending);
     $('teamMemberInviteLinks').classList.add('hidden');
     $('teamMemberInviteLinks').innerHTML = '';
     $('teamMemberDetailStatus').textContent = '';
     $('teamList').classList.add('hidden');
     $('teamMemberDetailCard').classList.remove('hidden');
+    $('editTeamMemberName').focus();
   }
 
   async function saveMember() {
@@ -61,18 +65,23 @@
     if (!member) return;
     const button = $('saveTeamMemberChanges');
     const status = $('teamMemberDetailStatus');
+    const name = $('editTeamMemberName').value.trim();
+    const phone = $('editTeamMemberPhone').value.trim();
+    if (!name) { status.textContent = 'Name is required.'; return; }
+    if (!phone) { status.textContent = 'Mobile phone is required.'; return; }
     button.disabled = true;
     status.textContent = 'Saving changes…';
     try {
       const result = await post('/api/mobile/team', {
         action: 'update_member',
         userId: activeMemberId,
-        name: $('editTeamMemberName').value.trim(),
+        name,
+        phone,
         role: $('editTeamMemberRole').value,
       });
       if (!result.response.ok) throw new Error(result.data?.error || 'Could not save team member.');
       status.textContent = 'Team member updated ✓';
-      await refreshTeamRows();
+      await refreshTeamRows(true);
       const refreshed = teamRows.find(row => Number(row.id) === activeMemberId);
       if (refreshed) openDetail(refreshed);
     } catch (err) {
@@ -82,29 +91,29 @@
     }
   }
 
-  async function copyText(text, status) {
+  async function copyText(text, status, label = 'Link copied ✓') {
     try {
       await navigator.clipboard.writeText(text);
-      status.textContent = 'Setup link copied ✓';
+      status.textContent = label;
     } catch {
-      status.textContent = 'Could not copy the setup link.';
+      status.textContent = 'Could not copy the link.';
     }
   }
 
-  function showInviteLinks(inviteUrl, appDownloadUrl) {
+  function showActionLinks({ primaryUrl, primaryLabel, appDownloadUrl }) {
     const wrap = $('teamMemberInviteLinks');
     wrap.innerHTML = '';
-    if (inviteUrl) {
+    if (primaryUrl) {
       const open = document.createElement('button');
       open.className = 'action-btn secondary';
       open.type = 'button';
-      open.textContent = 'Open setup link';
-      open.addEventListener('click', () => { window.location.href = inviteUrl; });
+      open.textContent = `Open ${primaryLabel}`;
+      open.addEventListener('click', () => { window.location.href = primaryUrl; });
       const copy = document.createElement('button');
       copy.className = 'action-btn secondary';
       copy.type = 'button';
-      copy.textContent = 'Copy setup link';
-      copy.addEventListener('click', () => copyText(inviteUrl, $('teamMemberDetailStatus')));
+      copy.textContent = `Copy ${primaryLabel}`;
+      copy.addEventListener('click', () => copyText(primaryUrl, $('teamMemberDetailStatus')));
       wrap.appendChild(open);
       wrap.appendChild(copy);
     }
@@ -133,13 +142,57 @@
         userId: activeMemberId,
       });
       if (!result.response.ok) throw new Error(result.data?.error || 'Could not resend invitation.');
-      status.textContent = 'Invitation text sent ✓';
-      showInviteLinks(result.data?.inviteUrl, result.data?.appDownloadUrl);
+      status.textContent = 'Setup invitation text sent ✓';
+      showActionLinks({
+        primaryUrl: result.data?.inviteUrl,
+        primaryLabel: 'setup link',
+        appDownloadUrl: result.data?.appDownloadUrl,
+      });
     } catch (err) {
       status.textContent = err?.message || 'Could not resend invitation.';
     } finally {
       button.disabled = false;
-      button.textContent = 'Resend invitation';
+      button.textContent = 'Resend setup invitation';
+    }
+  }
+
+  async function resetPassword() {
+    const member = teamRows.find(row => Number(row.id) === activeMemberId);
+    if (!member) return;
+    const button = $('resetTeamMemberPassword');
+    const status = $('teamMemberDetailStatus');
+    button.disabled = true;
+    const oldText = button.textContent;
+    button.textContent = 'Sending…';
+    status.textContent = member.pending
+      ? 'Sending a fresh account setup link…'
+      : 'Sending a secure password reset link…';
+    try {
+      const result = await post('/api/mobile/team', {
+        action: 'reset_password',
+        userId: activeMemberId,
+      });
+      if (!result.response.ok) throw new Error(result.data?.error || 'Could not send password reset.');
+      if (result.data?.setupRequired) {
+        status.textContent = 'Account setup link sent ✓';
+        showActionLinks({
+          primaryUrl: result.data?.inviteUrl,
+          primaryLabel: 'setup link',
+          appDownloadUrl: result.data?.appDownloadUrl,
+        });
+      } else {
+        status.textContent = `Password reset link sent ✓${result.data?.expiresMinutes ? ` Expires in ${result.data.expiresMinutes} minutes.` : ''}`;
+        showActionLinks({
+          primaryUrl: result.data?.resetUrl,
+          primaryLabel: 'reset link',
+          appDownloadUrl: null,
+        });
+      }
+    } catch (err) {
+      status.textContent = err?.message || 'Could not send password reset.';
+    } finally {
+      button.disabled = false;
+      button.textContent = oldText;
     }
   }
 
@@ -154,7 +207,7 @@
     }
     if (message) message.classList.add('hidden');
     list.innerHTML = teamRows.map(member => `
-      <button class="job-button team-member-button" data-team-member-id="${Number(member.id)}" type="button">
+      <button class="job-button team-member-button" data-team-member-id="${Number(member.id)}" type="button" style="width:100%;text-align:left">
         <div class="row">
           <div>
             <div class="title">${safe(member.name || member.phone || 'Team member')}</div>
@@ -167,8 +220,8 @@
     list.classList.remove('hidden');
   }
 
-  async function refreshTeamRows() {
-    if (rendering || !$('teamScreen') || $('teamScreen').classList.contains('hidden')) return;
+  async function refreshTeamRows(force = false) {
+    if (rendering || !$('teamScreen') || (!force && $('teamScreen').classList.contains('hidden'))) return;
     rendering = true;
     try {
       const result = await get('/api/mobile/team');
@@ -185,9 +238,11 @@
   document.addEventListener('click', event => {
     const button = event.target.closest('[data-team-member-id]');
     if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
     const member = teamRows.find(row => Number(row.id) === Number(button.dataset.teamMemberId));
     if (member) openDetail(member);
-  });
+  }, true);
 
   let timer = null;
   const observer = new MutationObserver(() => {
