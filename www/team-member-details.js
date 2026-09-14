@@ -72,196 +72,72 @@
     button.disabled = true;
     status.textContent = 'Saving changes…';
     try {
-      const result = await post('/api/mobile/team', {
-        action: 'update_member',
-        userId: activeMemberId,
-        name,
-        phone,
-        role: $('editTeamMemberRole').value,
-      });
+      const result = await post('/api/mobile/team', { action: 'update_member', userId: activeMemberId, name, phone, role: $('editTeamMemberRole').value });
       if (!result.response.ok) throw new Error(result.data?.error || 'Could not save team member.');
       status.textContent = 'Team member updated ✓';
       await refreshTeamRows(true);
       const refreshed = teamRows.find(row => Number(row.id) === activeMemberId);
       if (refreshed) openDetail(refreshed);
-    } catch (err) {
-      status.textContent = err?.message || 'Could not save team member.';
-    } finally {
-      button.disabled = false;
-    }
+    } catch (err) { status.textContent = err?.message || 'Could not save team member.'; }
+    finally { button.disabled = false; }
   }
 
   async function copyText(text, status, label = 'Link copied ✓') {
-    try {
-      await navigator.clipboard.writeText(text);
-      status.textContent = label;
-    } catch {
-      status.textContent = 'Could not copy the link.';
-    }
+    try { await navigator.clipboard.writeText(text); status.textContent = label; }
+    catch { status.textContent = 'Could not copy the link.'; }
   }
 
   function showActionLinks({ primaryUrl, primaryLabel, appDownloadUrl }) {
-    const wrap = $('teamMemberInviteLinks');
-    wrap.innerHTML = '';
+    const wrap = $('teamMemberInviteLinks'); wrap.innerHTML = '';
     if (primaryUrl) {
-      const open = document.createElement('button');
-      open.className = 'action-btn secondary';
-      open.type = 'button';
-      open.textContent = `Open ${primaryLabel}`;
-      open.addEventListener('click', () => { window.location.href = primaryUrl; });
-      const copy = document.createElement('button');
-      copy.className = 'action-btn secondary';
-      copy.type = 'button';
-      copy.textContent = `Copy ${primaryLabel}`;
-      copy.addEventListener('click', () => copyText(primaryUrl, $('teamMemberDetailStatus')));
-      wrap.appendChild(open);
-      wrap.appendChild(copy);
+      const open = document.createElement('button'); open.className = 'action-btn secondary'; open.type = 'button'; open.textContent = `Open ${primaryLabel}`; open.addEventListener('click', () => { window.location.href = primaryUrl; });
+      const copy = document.createElement('button'); copy.className = 'action-btn secondary'; copy.type = 'button'; copy.textContent = `Copy ${primaryLabel}`; copy.addEventListener('click', () => copyText(primaryUrl, $('teamMemberDetailStatus')));
+      wrap.appendChild(open); wrap.appendChild(copy);
     }
-    if (appDownloadUrl) {
-      const app = document.createElement('button');
-      app.className = 'action-btn secondary';
-      app.type = 'button';
-      app.textContent = 'Open app download';
-      app.addEventListener('click', () => { window.location.href = appDownloadUrl; });
-      wrap.appendChild(app);
-    }
+    if (appDownloadUrl) { const app = document.createElement('button'); app.className = 'action-btn secondary'; app.type = 'button'; app.textContent = 'Open app download'; app.addEventListener('click', () => { window.location.href = appDownloadUrl; }); wrap.appendChild(app); }
     wrap.classList.toggle('hidden', !wrap.children.length);
   }
 
   async function resendInvite() {
-    const member = teamRows.find(row => Number(row.id) === activeMemberId);
-    if (!member || !member.pending) return;
-    const button = $('resendTeamMemberInvite');
-    const status = $('teamMemberDetailStatus');
-    button.disabled = true;
-    button.textContent = 'Sending…';
-    status.textContent = 'Generating a fresh setup link and sending invitation…';
-    try {
-      const result = await post('/api/mobile/team', {
-        action: 'resend_invite',
-        userId: activeMemberId,
-      });
-      if (!result.response.ok) throw new Error(result.data?.error || 'Could not resend invitation.');
-      status.textContent = 'Setup invitation text sent ✓';
-      showActionLinks({
-        primaryUrl: result.data?.inviteUrl,
-        primaryLabel: 'setup link',
-        appDownloadUrl: result.data?.appDownloadUrl,
-      });
-    } catch (err) {
-      status.textContent = err?.message || 'Could not resend invitation.';
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Resend setup invitation';
-    }
+    const member = teamRows.find(row => Number(row.id) === activeMemberId); if (!member || !member.pending) return;
+    const button = $('resendTeamMemberInvite'), status = $('teamMemberDetailStatus'); button.disabled = true; button.textContent = 'Sending…'; status.textContent = 'Generating a fresh setup link and sending invitation…';
+    try { const result = await post('/api/mobile/team', { action: 'resend_invite', userId: activeMemberId }); if (!result.response.ok) throw new Error(result.data?.error || 'Could not resend invitation.'); status.textContent = 'Setup invitation text sent ✓'; showActionLinks({ primaryUrl: result.data?.inviteUrl, primaryLabel: 'setup link', appDownloadUrl: result.data?.appDownloadUrl }); }
+    catch (err) { status.textContent = err?.message || 'Could not resend invitation.'; }
+    finally { button.disabled = false; button.textContent = 'Resend setup invitation'; }
   }
 
   async function resetPassword() {
-    const member = teamRows.find(row => Number(row.id) === activeMemberId);
-    if (!member) return;
-    const button = $('resetTeamMemberPassword');
-    const status = $('teamMemberDetailStatus');
-    button.disabled = true;
-    const oldText = button.textContent;
-    button.textContent = 'Sending…';
-    status.textContent = member.pending
-      ? 'Sending a fresh account setup link…'
-      : 'Sending a secure password reset link…';
-    try {
-      const result = await post('/api/mobile/team', {
-        action: 'reset_password',
-        userId: activeMemberId,
-      });
-      if (!result.response.ok) throw new Error(result.data?.error || 'Could not send password reset.');
-      if (result.data?.setupRequired) {
-        status.textContent = 'Account setup link sent ✓';
-        showActionLinks({
-          primaryUrl: result.data?.inviteUrl,
-          primaryLabel: 'setup link',
-          appDownloadUrl: result.data?.appDownloadUrl,
-        });
-      } else {
-        status.textContent = `Password reset link sent ✓${result.data?.expiresMinutes ? ` Expires in ${result.data.expiresMinutes} minutes.` : ''}`;
-        showActionLinks({
-          primaryUrl: result.data?.resetUrl,
-          primaryLabel: 'reset link',
-          appDownloadUrl: null,
-        });
-      }
-    } catch (err) {
-      status.textContent = err?.message || 'Could not send password reset.';
-    } finally {
-      button.disabled = false;
-      button.textContent = oldText;
-    }
+    const member = teamRows.find(row => Number(row.id) === activeMemberId); if (!member) return;
+    const button = $('resetTeamMemberPassword'), status = $('teamMemberDetailStatus'); button.disabled = true; const oldText = button.textContent; button.textContent = 'Sending…'; status.textContent = member.pending ? 'Sending a fresh account setup link…' : 'Sending a secure password reset link…';
+    try { const result = await post('/api/mobile/team', { action: 'reset_password', userId: activeMemberId }); if (!result.response.ok) throw new Error(result.data?.error || 'Could not send password reset.'); if (result.data?.setupRequired) { status.textContent = 'Account setup link sent ✓'; showActionLinks({ primaryUrl: result.data?.inviteUrl, primaryLabel: 'setup link', appDownloadUrl: result.data?.appDownloadUrl }); } else { status.textContent = `Password reset link sent ✓${result.data?.expiresMinutes ? ` Expires in ${result.data.expiresMinutes} minutes.` : ''}`; showActionLinks({ primaryUrl: result.data?.resetUrl, primaryLabel: 'reset link', appDownloadUrl: null }); } }
+    catch (err) { status.textContent = err?.message || 'Could not send password reset.'; }
+    finally { button.disabled = false; button.textContent = oldText; }
   }
 
   function renderTeamRows() {
-    const list = $('teamList');
-    const message = $('teamMessage');
-    if (!list) return;
-    if (!teamRows.length) {
-      list.innerHTML = '';
-      if (message) { message.textContent = 'No team members yet.'; message.classList.remove('hidden'); }
-      return;
-    }
+    const list = $('teamList'), message = $('teamMessage'); if (!list) return;
+    if (!teamRows.length) { list.innerHTML = ''; if (message) { message.textContent = 'No team members yet.'; message.classList.remove('hidden'); } return; }
     if (message) message.classList.add('hidden');
-    list.innerHTML = teamRows.map(member => `
-      <button class="job-button team-member-button" data-team-member-id="${Number(member.id)}" type="button" style="width:100%;text-align:left">
-        <div class="row">
-          <div>
-            <div class="title">${safe(member.name || member.phone || 'Team member')}</div>
-            <div class="meta">${safe(member.phone || '')}</div>
-          </div>
-          <div class="pill">${safe(member.role === 'owner' ? 'Owner' : 'Admin')}</div>
-        </div>
-        <div class="view">${member.pending ? 'Pending setup · ' : ''}View / Edit ›</div>
-      </button>`).join('');
+    list.innerHTML = teamRows.map(member => `<button class="job-button team-member-button" data-team-member-id="${Number(member.id)}" type="button" style="width:100%;text-align:left"><div class="row"><div><div class="title">${safe(member.name || member.phone || 'Team member')}</div><div class="meta">${safe(member.phone || '')}</div></div><div class="pill">${safe(member.role === 'owner' ? 'Owner' : 'Admin')}</div></div><div class="view">${member.pending ? 'Pending setup · ' : ''}View / Edit ›</div></button>`).join('');
     list.classList.remove('hidden');
   }
 
   async function refreshTeamRows(force = false) {
-    if (rendering || !$('teamScreen') || (!force && $('teamScreen').classList.contains('hidden'))) return;
-    rendering = true;
-    try {
-      const result = await get('/api/mobile/team');
-      if (!result.response.ok) return;
-      teamRows = Array.isArray(result.data?.users) ? result.data.users : [];
-      renderTeamRows();
-    } catch (err) {
-      console.error('Could not enhance team member list', err);
-    } finally {
-      rendering = false;
-    }
+    if (rendering || !$('teamScreen') || (!force && $('teamScreen').classList.contains('hidden'))) return; rendering = true;
+    try { const result = await get('/api/mobile/team'); if (!result.response.ok) return; teamRows = Array.isArray(result.data?.users) ? result.data.users : []; renderTeamRows(); }
+    catch (err) { console.error('Could not enhance team member list', err); }
+    finally { rendering = false; }
   }
 
-  document.addEventListener('click', event => {
-    const button = event.target.closest('[data-team-member-id]');
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const member = teamRows.find(row => Number(row.id) === Number(button.dataset.teamMemberId));
-    if (member) openDetail(member);
-  }, true);
-
+  document.addEventListener('click', event => { const button = event.target.closest('[data-team-member-id]'); if (!button) return; event.preventDefault(); event.stopPropagation(); const member = teamRows.find(row => Number(row.id) === Number(button.dataset.teamMemberId)); if (member) openDetail(member); }, true);
   let timer = null;
-  const observer = new MutationObserver(() => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      ensureDetailCard();
-      if ($('teamScreen') && !$('teamScreen').classList.contains('hidden') && !activeMemberId) refreshTeamRows();
-    }, 120);
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    ensureDetailCard();
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-  });
+  const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(() => { ensureDetailCard(); if ($('teamScreen') && !$('teamScreen').classList.contains('hidden') && !activeMemberId) refreshTeamRows(); }, 120); });
+  document.addEventListener('DOMContentLoaded', () => { ensureDetailCard(); observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }); });
 })();
 
-(() => {
+['new-job-customer.js','onboarding.js'].forEach(src => {
   const script = document.createElement('script');
-  script.src = 'new-job-customer.js';
+  script.src = src;
   script.defer = true;
   document.head.appendChild(script);
-})();
+});
