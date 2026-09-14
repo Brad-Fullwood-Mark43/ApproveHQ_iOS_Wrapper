@@ -1,0 +1,17 @@
+name: Help documentation check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  help-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check onboarding and help documentation
+        run: bash scripts/check-help-docs.sh origin/${{ github.base_ref || 'main' }}
