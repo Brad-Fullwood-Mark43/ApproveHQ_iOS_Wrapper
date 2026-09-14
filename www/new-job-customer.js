@@ -18,7 +18,7 @@
       <div class="section-title">New customer</div>
       <div id="inlineCustomerFields">
         <div class="field"><label for="inlineCustomerName">Name</label><input id="inlineCustomerName" type="text" maxlength="200"></div>
-        <div class="field"><label for="inlineCustomerPhone">Phone</label><input id="inlineCustomerPhone" type="tel" inputmode="tel"></div>
+        <div class="field"><label for="inlineCustomerPhone">Phone <span class="meta">(optional)</span></label><input id="inlineCustomerPhone" type="tel" inputmode="tel" placeholder="Add later if unknown"></div>
         <div class="field"><label for="inlineCustomerCompany">Business / Company</label><input id="inlineCustomerCompany" type="text" maxlength="200"></div>
         <div class="field"><label for="inlineCustomerEmail">Email</label><input id="inlineCustomerEmail" type="email"></div>
         <div class="action-grid">
@@ -86,8 +86,8 @@
       email: document.getElementById('inlineCustomerEmail')?.value.trim(),
     };
 
-    if (!payload.name || !payload.phone) {
-      status.textContent = 'Name and phone are required.';
+    if (!payload.name) {
+      status.textContent = 'Name is required. Phone can be added later.';
       return;
     }
 
