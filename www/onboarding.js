@@ -23,9 +23,9 @@
     wrap.innerHTML = `<div class="onboarding-sheet" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
       <div class="onboarding-brand"><div class="mark">A✓</div><div><h2 id="onboardingTitle">Welcome to ApproveHQ</h2><div class="meta">Customer approvals, simplified.</div></div></div>
       <p>Get your first customer approval moving in three simple steps.</p>
-      <div class="onboarding-step"><div class="onboarding-number">1</div><div><strong>Add a customer</strong><span>Add the person you're doing work for.</span></div></div>
+      <div class="onboarding-step"><div class="onboarding-number">1</div><div><strong>Add a customer</strong><span>Add the person you're doing work for. A phone number is optional.</span></div></div>
       <div class="onboarding-step"><div class="onboarding-number">2</div><div><strong>Create their job</strong><span>Add the work, photos and details they need to review.</span></div></div>
-      <div class="onboarding-step"><div class="onboarding-number">3</div><div><strong>Send for approval</strong><span>ApproveHQ texts your customer a secure approval link.</span></div></div>
+      <div class="onboarding-step"><div class="onboarding-number">3</div><div><strong>Send for approval</strong><span>Send by text when a phone is available, or use Share for Snapchat and other apps.</span></div></div>
       <div class="onboarding-actions"><button id="onboardingStart" class="primary" type="button">Get started</button><button id="onboardingLater" class="action-btn secondary" type="button">Not now</button></div>
     </div>`;
     document.body.appendChild(wrap);
@@ -36,9 +36,7 @@
   function dismissWelcome(start) {
     localStorage.setItem(key('welcome-seen'), '1');
     byId('onboardingWelcome')?.classList.add('hidden');
-    if (start) {
-      document.getElementById('gettingStartedCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    if (start) document.getElementById('gettingStartedCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function maybeShowWelcome() {
@@ -62,13 +60,9 @@
   }
 
   function actionFor(step) {
-    if (step === 'customers') {
-      selectTab('customers', true).then(() => byId('addCustomerBtn')?.click());
-    } else if (step === 'jobs') {
-      selectTab('jobs', true).then(() => byId('newJobBtn')?.click());
-    } else if (step === 'sent') {
-      selectTab('jobs', true);
-    }
+    if (step === 'customers') selectTab('customers', true).then(() => byId('addCustomerBtn')?.click());
+    else if (step === 'jobs') selectTab('jobs', true).then(() => byId('newJobBtn')?.click());
+    else if (step === 'sent') selectTab('jobs', true);
   }
 
   function renderChecklist() {
@@ -85,9 +79,9 @@
       if (topbar?.nextSibling) screen.insertBefore(card, topbar.nextSibling); else screen.appendChild(card);
     }
     const items = [
-      ['customers','Add your first customer','Add the person you’re doing work for.','Add Customer'],
+      ['customers','Add your first customer','Add the person you’re doing work for. Phone can be added later.','Add Customer'],
       ['jobs','Create your first job','Add the work, details and photos your customer needs.','Create Job'],
-      ['sent','Send it for approval','Open the job when it’s ready and send the approval text.','View Jobs']
+      ['sent','Send it for approval','Open the job when it’s ready, then Send Text or Share.','View Jobs']
     ];
     card.innerHTML = `<div class="getting-started-head"><div><div class="section-title" style="margin-bottom:4px">Getting Started</div><div class="meta">Follow these steps to send your first approval.</div></div><div class="getting-started-progress">${doneCount} of 3</div></div>
       <div class="getting-started-bar"><div class="getting-started-fill" style="width:${doneCount/3*100}%"></div></div>
@@ -109,9 +103,9 @@
     card.id = 'onboardingHelpCard';
     card.className = 'detail-card onboarding-help-card';
     card.innerHTML = `<div class="section-title">Getting Started & Help</div><p class="meta">Need a refresher? Follow the core ApproveHQ workflow anytime.</p>
-      <button class="help-link" data-help-action="customers" type="button"><span><strong>1. Add a customer</strong><span class="meta">Who the job is for</span></span><span class="help-chevron">›</span></button>
+      <button class="help-link" data-help-action="customers" type="button"><span><strong>1. Add a customer</strong><span class="meta">Who the job is for; phone is optional</span></span><span class="help-chevron">›</span></button>
       <button class="help-link" data-help-action="jobs" type="button"><span><strong>2. Create a job</strong><span class="meta">Add details and photos</span></span><span class="help-chevron">›</span></button>
-      <button class="help-link" data-help-action="sent" type="button"><span><strong>3. Send for approval</strong><span class="meta">Text the customer their approval link</span></span><span class="help-chevron">›</span></button>
+      <button class="help-link" data-help-action="sent" type="button"><span><strong>3. Send for approval</strong><span class="meta">Send Text or use the iOS Share sheet</span></span><span class="help-chevron">›</span></button>
       <button id="replayWelcome" class="action-btn secondary" type="button" style="width:100%;margin-top:12px">Replay welcome</button>`;
     screen.appendChild(card);
     card.querySelectorAll('[data-help-action]').forEach(button => button.addEventListener('click', () => actionFor(button.dataset.helpAction)));
@@ -119,7 +113,7 @@
   }
 
   document.addEventListener('click', event => {
-    if (event.target.closest('#createCustomerSubmit,#createJobSubmit,#sendApprovalBtn')) setTimeout(refreshState, 900);
+    if (event.target.closest('#createCustomerSubmit,#createJobSubmit,#sendApprovalBtn,#shareApprovalBtn')) setTimeout(refreshState, 900);
   }, true);
 
   let timer;
@@ -135,3 +129,8 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
+
+const customerSharingScript = document.createElement('script');
+customerSharingScript.src = 'customer-sharing.js';
+customerSharingScript.defer = true;
+document.head.appendChild(customerSharingScript);
