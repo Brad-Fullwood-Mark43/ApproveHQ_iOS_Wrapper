@@ -1,6 +1,10 @@
 'use strict';
 
 (() => {
+  let deliveryJobId = null;
+  let deliveryData = null;
+  let deliveryLoading = false;
+
   function makePhoneOptional(input, labelText = 'Phone') {
     if (!input) return;
     input.required = false;
@@ -37,10 +41,15 @@
         });
 
         try {
-          await post(`/api/mobile/jobs/${job.id}`, { action: 'mark_sent' });
-          loaded.jobs = false;
+          const marked = await post(`/api/mobile/jobs/${job.id}`, { action: 'mark_sent' });
+          if (marked.response.ok) {
+            loaded.jobs = false;
+            deliveryData = { ...deliveryData, customerNotified: true };
+            await loadJob(job.id);
+            return;
+          }
         } catch {
-          // Sharing succeeded; failure to update local tracking should not hide that.
+          // Sharing succeeded even if tracking could not be updated.
         }
 
         status.textContent = 'Shared ✓';
@@ -61,24 +70,47 @@
     }
   }
 
+  async function getDeliveryData() {
+    const jobId = Number(currentJobId);
+    if (!Number.isInteger(jobId) || jobId <= 0) return null;
+    if (deliveryJobId === jobId && deliveryData) return deliveryData;
+    if (deliveryLoading) return null;
+
+    deliveryLoading = true;
+    try {
+      const response = await get(`/api/mobile/jobs/${jobId}`);
+      if (!response.response.ok) return null;
+      deliveryJobId = jobId;
+      deliveryData = response.data;
+      return deliveryData;
+    } catch {
+      return null;
+    } finally {
+      deliveryLoading = false;
+    }
+  }
+
+  function applyPaymentPhoneState(hasPhone) {
+    const paymentButton = document.getElementById('payBtn');
+    const paymentStatus = document.getElementById('payStatus');
+    if (!paymentButton) return;
+
+    if (!hasPhone) {
+      paymentButton.disabled = true;
+      paymentButton.title = 'Add a phone number before sending a payment request by text.';
+      if (paymentStatus) paymentStatus.textContent = 'Add a customer phone number before sending a payment request by text.';
+    }
+  }
+
   async function enhanceJobDelivery() {
     const sendButton = document.getElementById('sendApprovalBtn');
-    const detail = document.getElementById('detailContent');
-    if (!sendButton || !detail || sendButton.dataset.shareEnhanced === 'true') return;
-    if (!currentJobId) return;
+    if (!sendButton || !currentJobId) return;
 
-    sendButton.dataset.shareEnhanced = 'true';
+    const data = await getDeliveryData();
+    if (!data) return;
 
-    let response;
-    try {
-      response = await get(`/api/mobile/jobs/${currentJobId}`);
-      if (!response.response.ok) return;
-    } catch {
-      return;
-    }
-
-    const job = response.data.job || {};
-    const shareUrl = response.data.shareUrl || '';
+    const job = data.job || {};
+    const shareUrl = data.shareUrl || '';
     const status = document.getElementById('sendStatus');
     const hasPhone = Boolean(String(job.customer_phone || '').trim());
 
@@ -86,7 +118,9 @@
     if (!hasPhone) {
       sendButton.disabled = true;
       sendButton.title = 'Add a phone number to send by text.';
-      if (status) status.textContent = 'No phone number on file. Use Share, or add a phone number to enable texting.';
+      if (status && !status.textContent) {
+        status.textContent = 'No phone number on file. Use Share, or add a phone number to enable texting.';
+      }
     }
 
     const openMessages = document.getElementById('openMessagesBtn');
@@ -107,23 +141,17 @@
 
       shareButton.addEventListener('click', async () => {
         shareButton.disabled = true;
-        if (status) status.textContent = 'Opening Share…';
+        const liveStatus = document.getElementById('sendStatus');
+        if (liveStatus) liveStatus.textContent = 'Opening Share…';
         try {
-          await shareJob(job, shareUrl, status || { textContent: '' });
+          await shareJob(job, shareUrl, liveStatus || { textContent: '' });
         } finally {
           shareButton.disabled = false;
         }
       });
     }
 
-    const paymentForm = document.getElementById('paymentForm');
-    const paymentButton = document.getElementById('payBtn');
-    const paymentStatus = document.getElementById('payStatus');
-    if (paymentForm && paymentButton && !hasPhone) {
-      paymentButton.disabled = true;
-      paymentButton.title = 'Add a phone number before sending a payment request by text.';
-      if (paymentStatus) paymentStatus.textContent = 'Add a customer phone number before sending a payment request by text.';
-    }
+    applyPaymentPhoneState(hasPhone);
   }
 
   applyOptionalPhoneFields();
