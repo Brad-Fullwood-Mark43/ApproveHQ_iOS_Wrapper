@@ -11,12 +11,12 @@ The first v1.1 onboarding implementation is being built before the refreshed scr
 | Screenshot | Workflow | Status | Invalidation sources |
 | --- | --- | --- | --- |
 | `01-jobs-getting-started.png` | Jobs / Getting Started checklist | CAPTURE REQUIRED | `www/onboarding.js`, `www/app.js`, `www/app.css` |
-| `02-add-customer.png` | Add first customer | CAPTURE REQUIRED | `www/index.html`, `www/app.js`, `www/new-job-customer.js`, `www/app.css` |
+| `02-add-customer.png` | Add first customer; phone optional | CAPTURE REQUIRED | `www/index.html`, `www/app.js`, `www/new-job-customer.js`, `www/customer-sharing.js`, `www/app.css` |
 | `03-create-job.png` | Create draft job | CAPTURE REQUIRED | `www/index.html`, `www/app.js`, `www/new-job-customer.js`, `www/app.css` |
 | `04-job-photos.png` | Add photos/details | CAPTURE REQUIRED | `www/app.js`, `www/app-ui-polish.js`, `www/app.css` |
-| `05-send-approval.png` | Send approval text | CAPTURE REQUIRED | `www/app.js`, `www/app-ui-polish.js`, `www/app.css` |
+| `05-send-approval.png` | Send Text / native iOS Share; no-phone disabled state | CAPTURE REQUIRED | `www/app.js`, `www/customer-sharing.js`, `www/onboarding.js`, `www/app-ui-polish.js`, `www/app.css` |
 | `06-customer-approval.png` | Customer approval result | CAPTURE REQUIRED | customer-facing web UI; backend repository |
-| `07-payment-request.png` | Request/track payment | CAPTURE REQUIRED | `www/app.js`, Square/payment UI files, `www/app.css` |
+| `07-payment-request.png` | Request/track payment; SMS requires customer phone | CAPTURE REQUIRED | `www/app.js`, `www/customer-sharing.js`, Square/payment UI files, `www/app.css` |
 | `08-team-help.png` | Team management | CAPTURE REQUIRED | `www/team-member-details.js`, `www/app.css` |
 
 ## Capture procedure
