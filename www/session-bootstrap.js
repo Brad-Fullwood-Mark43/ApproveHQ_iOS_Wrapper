@@ -259,6 +259,20 @@
 
       const result = await post('/api/mobile/auth/login', payload);
       if (!result.response.ok) {
+        if (Array.isArray(result.data?.memberships) && result.data.memberships.length) {
+          const business = document.getElementById('business');
+          business.innerHTML = '';
+          for (const membership of result.data.memberships) {
+            const option = document.createElement('option');
+            option.value = String(membership.businessId);
+            option.textContent = membership.businessName || ('Business ' + membership.businessId);
+            business.appendChild(option);
+          }
+          document.getElementById('businessField').classList.remove('hidden');
+          showLoginError('Choose a business, then tap Sign in again.');
+          business.focus();
+          return;
+        }
         showLoginError(result.data.error || 'Unable to sign in.');
         return;
       }
