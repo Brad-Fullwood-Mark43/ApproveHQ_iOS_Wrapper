@@ -114,7 +114,9 @@
     const status = document.getElementById('sendStatus');
     const hasPhone = Boolean(String(job.customer_phone || '').trim());
 
-    sendButton.textContent = 'Send Text';
+    if (sendButton.textContent !== 'Send Text') {
+      sendButton.textContent = 'Send Text';
+    }
     if (!hasPhone) {
       sendButton.disabled = true;
       sendButton.title = 'Add a phone number to send by text.';
@@ -123,44 +125,23 @@
       }
     }
 
-    const openMessages = document.getElementById('openMessagesBtn');
-    if (openMessages && !hasPhone) {
-      openMessages.disabled = true;
-      openMessages.title = 'Add a phone number to open Messages.';
-    }
-
-    if (!document.getElementById('shareApprovalBtn')) {
-      const shareButton = document.createElement('button');
-      shareButton.id = 'shareApprovalBtn';
-      shareButton.className = 'action-btn';
-      shareButton.type = 'button';
-      shareButton.style.width = '100%';
-      shareButton.style.marginTop = '10px';
-      shareButton.textContent = 'Share';
-      sendButton.insertAdjacentElement('afterend', shareButton);
-
-      shareButton.addEventListener('click', async () => {
-        shareButton.disabled = true;
-        const liveStatus = document.getElementById('sendStatus');
-        if (liveStatus) liveStatus.textContent = 'Opening Share…';
-        try {
-          await shareJob(job, shareUrl, liveStatus || { textContent: '' });
-        } finally {
-          shareButton.disabled = false;
-        }
-      });
-    }
-
     applyPaymentPhoneState(hasPhone);
   }
 
   applyOptionalPhoneFields();
 
-  const observer = new MutationObserver(() => {
-    applyOptionalPhoneFields();
-    enhanceJobDelivery();
-  });
+  let enhancementTimer = null;
+
+  function scheduleEnhancements() {
+    clearTimeout(enhancementTimer);
+    enhancementTimer = setTimeout(() => {
+      applyOptionalPhoneFields();
+      enhanceJobDelivery();
+    }, 75);
+  }
+
+  const observer = new MutationObserver(scheduleEnhancements);
 
   observer.observe(document.body, { childList: true, subtree: true });
-  enhanceJobDelivery();
+  scheduleEnhancements();
 })();

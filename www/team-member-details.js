@@ -129,7 +129,30 @@
     finally { rendering = false; }
   }
 
-  document.addEventListener('click', event => { const button = event.target.closest('[data-team-member-id]'); if (!button) return; event.preventDefault(); event.stopPropagation(); const member = teamRows.find(row => Number(row.id) === Number(button.dataset.teamMemberId)); if (member) openDetail(member); }, true);
+  document.addEventListener('click', async event => {
+    const button = event.target.closest('[data-team-member-id]');
+    if (!button) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const memberId = Number(button.dataset.teamMemberId);
+    let member = teamRows.find(row => Number(row.id) === memberId);
+
+    if (!member) {
+      try {
+        const result = await get('/api/mobile/team');
+        if (result.response.ok) {
+          teamRows = Array.isArray(result.data?.users) ? result.data.users : [];
+          member = teamRows.find(row => Number(row.id) === memberId);
+        }
+      } catch (err) {
+        console.error('Could not load team member detail', err);
+      }
+    }
+
+    if (member) openDetail(member);
+  }, true);
   let timer = null;
   const observer = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(() => { ensureDetailCard(); if ($('teamScreen') && !$('teamScreen').classList.contains('hidden') && !activeMemberId) refreshTeamRows(); }, 120); });
   document.addEventListener('DOMContentLoaded', () => { ensureDetailCard(); observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }); });
