@@ -46,7 +46,11 @@
 
     root.innerHTML = memberships.map(m => {
       const active = Number(m.businessId) === Number(currentBusinessId);
-      const type = m.businessType === 'dumpster_rental' ? 'Roll Off / Dumpster Rental' : 'Jobs & Customer Approvals';
+      const type = m.businessType === 'dumpster_rental'
+        ? 'Roll Off / Dumpster Rental'
+        : m.businessType === 'swim_lessons'
+          ? 'Swim Lessons'
+          : 'Jobs & Customer Approvals';
       return `<button class="action-btn ${active ? 'secondary' : ''}" data-switch-business-id="${Number(m.businessId)}" type="button" style="width:100%;margin-top:8px" ${active ? 'disabled' : ''}>
         <span style="display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%">
           <span style="text-align:left"><strong>${esc(m.businessName)}</strong><br><span class="meta">${esc(type)}</span></span>
