@@ -109,7 +109,14 @@
 
       if (status) status.textContent = 'Business switched ✓';
       await loadMemberships();
-      await window.selectTab('jobs', true);
+
+      if (me.data.user.businessType === 'swim_lessons' && window.ApproveHQSwim) {
+        window.ApproveHQSwim.reset();
+        window.ApproveHQSwim.activate();
+      } else {
+        window.ApproveHQSwim?.deactivate?.();
+        await window.selectTab('jobs', true);
+      }
     } catch (err) {
       if (status) status.textContent = err.message || 'Could not switch business.';
       button.disabled = false;
