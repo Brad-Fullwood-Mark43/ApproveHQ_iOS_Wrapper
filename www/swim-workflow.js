@@ -3,6 +3,7 @@
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let swimLoaded={today:false,schedule:false,students:false,requests:false};
+  let defaultNavHTML=null;
 
   function isSwim(){ return window.currentUser?.businessType==='swim_lessons'; }
   function fmt(v){ if(!v)return ''; const d=new Date(v); return d.toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
@@ -19,6 +20,7 @@
   }
   function nav(){
     const root=$('bottomNav')?.querySelector('.bottom-inner'); if(!root)return;
+    if(defaultNavHTML===null) defaultNavHTML=root.innerHTML;
     root.innerHTML=`<button class="tab active" data-swim-tab="today" type="button"><span>◷</span>Today</button><button class="tab" data-swim-tab="schedule" type="button"><span>▦</span>Schedule</button><button class="tab" data-swim-tab="students" type="button"><span>♟</span>Students</button><button class="tab" data-swim-tab="requests" type="button"><span>✓</span>Requests</button>`;
   }
   function show(name){
@@ -61,7 +63,18 @@
     const confirm=e.target.closest('[data-confirm-request]'); if(confirm){confirm.disabled=true;try{const x=await req('/api/mobile/swim/requests',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:Number(confirm.dataset.confirmRequest),action:'confirm'})});if(!x.response.ok)throw new Error(x.data?.error||'Could not confirm.');swimLoaded.today=false;swimLoaded.requests=false;await load('requests',true);}catch(err){showBanner(err.message)}finally{confirm.disabled=false;}}
   });
   window.ApproveHQSwim={
-    activate(){install();nav();['jobsScreen','customersScreen','paymentsScreen','teamScreen','nativeFeaturesScreen','detailScreen','newJobScreen','addCustomerScreen','editCustomerScreen'].forEach(id=>$(id)?.classList.add('hidden'));$('bottomNav')?.classList.remove('hidden');show('today');},
+    activate(){
+      install();
+      nav();
+      ['jobsScreen','customersScreen','paymentsScreen','teamScreen','nativeFeaturesScreen','detailScreen','newJobScreen','addCustomerScreen','editCustomerScreen'].forEach(id=>$(id)?.classList.add('hidden'));
+      $('bottomNav')?.classList.remove('hidden');
+      show('today');
+    },
+    deactivate(){
+      ['swimTodayScreen','swimScheduleScreen','swimStudentsScreen','swimRequestsScreen'].forEach(id=>$(id)?.classList.add('hidden'));
+      const root=$('bottomNav')?.querySelector('.bottom-inner');
+      if(root && defaultNavHTML!==null) root.innerHTML=defaultNavHTML;
+    },
     reset(){swimLoaded={today:false,schedule:false,students:false,requests:false};}
   };
   install();
